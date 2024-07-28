@@ -1,6 +1,11 @@
 package com.example.algorithmvisualizer.presentation.utils
 
+import android.util.Log
 import com.example.algorithmvisualizer.domain.model.Item
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flow
 import java.util.UUID
 
 
@@ -51,8 +56,14 @@ fun generateStaticItems(size: Int = ITEMS_VALUES_80.size): List<Item> =
         }
 
 fun generateRandomValues(count: Int = 8, min:Int = 2, max:Int = 50): List<Int> {
-    return (0..8).map{ (min..max).random()}
+    return (1..count.coerceAtLeast(1)).map{ (min..max).random()}
 }
 
+
+
+data class KeyedValue<out K, out V>(val key: K, val value: V)
+
+fun <T, K> T.toKeyedValue(key:K) = KeyedValue(key,this)
+fun <T> T.toKeyedValue(key:String = UUID.randomUUID().toString()) = KeyedValue(key,this)
 
 

@@ -17,6 +17,7 @@ import com.example.algorithmvisualizer.domain.model.SortIterator
 import com.example.algorithmvisualizer.domain.model.SortOperation
 import com.example.algorithmvisualizer.domain.model.setStatus
 import com.example.algorithmvisualizer.domain.model.swap
+import kotlin.system.measureTimeMillis
 
 typealias SubListIndices = Pair<Int, Int>
 typealias Stack = ArrayDeque<SubListIndices>
@@ -64,7 +65,8 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
 //            }
 //            state.indicesStatus.clear()
 //            removeSelectedItemsStatus(selectedIndices)
-
+            val indices = state.indicesStatus.keys
+            removeSelectedItemsStatus(list = state.items, indices = indices)
             applyOperationIndicesStatus(state.items, nextOperation)
 
 
@@ -83,6 +85,9 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
             val partitioningOp = partitionOperationFactory(
                 state.items, (state.low to state.high)
             )
+            val indices = state.indicesStatus.keys
+            removeSelectedItemsStatus(list = state.items, indices = indices)
+
             applyOperationAndSaveInHistoryAndSnapshots(partitioningOp)
             saveIndices()
             return partitioningOp
@@ -90,25 +95,26 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
 
         if (state.stack.isEmpty() && !state.partitioning) {
             completedSortingAt = history.getHistoryIndex()
-            return null
+            return SortOperation(QuickSortAction.Completed, listOf(), listOf())
+//            return null
         }
 
         if (!state.partitioning) {
             // Comparing
-            checkpoint++
-            if (state.returnPoint < checkpoint) {
-                state = state.copy(returnPoint = checkpoint)
-                val comparingOp =
-                    comparingOperationFactory(
-                        state.items,
-                        state.stack.last().first,
-                        state.stack.last().second
-                    )
-
-                applyOperationAndSaveInHistoryAndSnapshots(comparingOp)
-                saveIndices()
-                return comparingOp
-            }
+//            checkpoint++
+//            if (state.returnPoint < checkpoint) {
+//                state = state.copy(returnPoint = checkpoint)
+//                val comparingOp =
+//                    comparingOperationFactory(
+//                        state.items,
+//                        state.stack.last().first,
+//                        state.stack.last().second
+//                    )
+//
+//                applyOperationAndSaveInHistoryAndSnapshots(comparingOp)
+//                saveIndices()
+//                return comparingOp
+//            }
 
             val (currentLow, currentHigh) = state.stack.last()
             state = state.copy(low = currentLow, high = currentHigh)
@@ -118,7 +124,7 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
                 if (state.returnPoint < checkpoint) {
                     state = state.copy(returnPoint = checkpoint)
                     val pivotIndex = state.low + (state.high - state.low) / 2
-                    selectPivot(state.items, pivotIndex)
+//                    selectPivot(state.items, pivotIndex)
                     state = state.copy(pivot = state.items[pivotIndex].value)
 
                     val selectingPivotOp =
@@ -127,6 +133,10 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
                             listOf(pivotIndex),
                             listOf(state.items[pivotIndex])
                         )
+
+                    val indices = state.indicesStatus.keys
+                    removeSelectedItemsStatus(list = state.items, indices = indices)
+
                     applyOperationAndSaveInHistoryAndSnapshots(selectingPivotOp)
                     saveIndices()
                     return selectingPivotOp
@@ -149,10 +159,14 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
             checkpoint++
             if (state.returnPoint < checkpoint) {
                 state = state.copy(returnPoint = checkpoint)
-                state = state.copy(
-                    l = getLeftSwapIndex(state.items, state.l, state.pivot),
-                    r = getRightSwapIndex(state.items, state.r, state.pivot)
-                )
+                // Aqui podem ser feitos diversos retornos, um para cada comparação,
+                // mas dessa forma ele já procura direto os itens que tem que ser trocados
+                // talvez seja melhor implementar cada comparação, para fins didáticos
+                val curL = getLeftSwapIndex(state.items.subList(state.l, state.high+1), state.l, state.pivot)
+//                val curR = getRightSwapIndex(state.items, state.r, state.pivot)
+                val curR = getRightSwapIndex(state.items.subList(state.low, state.r+1), state.r, state.low, state.pivot)
+                state = state.copy(l = curL, r = curR)
+
 
 //                val operation = SortOperation(
 //                    QuickSortAction.FindingUnsorted,
@@ -170,9 +184,11 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
                 checkpoint++
                 if (state.returnPoint < checkpoint) {
                     state = state.copy(returnPoint = checkpoint)
-
                     val sortedOp =
-                        partitionSortedOperationFactory(state.items, state.l, state.high)
+                        partitionSortedOperationFactory(state.items, state.low, state.high)
+
+                    val indices = state.indicesStatus.keys
+                    removeSelectedItemsStatus(list = state.items, indices = indices)
 
                     applyOperationAndSaveInHistoryAndSnapshots(sortedOp)
                     saveIndices()
@@ -202,6 +218,10 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
 
                 state = state.copy(partitioning = false, returnPoint = 0)
 
+
+                val indices = state.indicesStatus.keys
+                removeSelectedItemsStatus(list = state.items, indices = indices)
+
                 applyOperationAndSaveInHistoryAndSnapshots(partitionOp)
                 saveIndices()
 
@@ -213,6 +233,10 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
             state = state.copy(l = state.l + 1, r = state.r - 1, returnPoint = 0)
 
 //            applyOperationIndicesStatus(state.items, swapOperation)
+
+            val indices = state.indicesStatus.keys
+            removeSelectedItemsStatus(list = state.items, indices = indices)
+
             applyOperationAndSaveInHistoryAndSnapshots(swapOperation)
             saveIndices()
 
@@ -220,10 +244,11 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
         }
 
         val sortedOperation = partitionSortedOperationFactory(state.items, state.low, state.high)
-
         state = state.copy(returnPoint = 0)
 
 //        applyOperationIndicesStatus(state.items, sortedOperation)
+        val indices = state.indicesStatus.keys
+        removeSelectedItemsStatus(list = state.items, indices = indices)
         applyOperationAndSaveInHistoryAndSnapshots(sortedOperation)
         saveIndices()
 
@@ -244,12 +269,15 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
         }
 
         curOperation?.let {
+            removeSelectedItemsStatus(list=state.items, ignoreStack = true, indices=state.indicesStatus.filter{it.value != Normal}.keys)
             applyOperation(state.items, it)
         }
 
         return prevOperation?.also { prevOp ->
-            applyOperationIndicesStatus(state.items, prevOp)
 //            removeSelectedItemsStatus()
+            val idxs = prevOp.indices.min()..prevOp.indices.max()
+            selectPartitionItens(idxs)
+            applyOperationIndicesStatus(state.items, prevOp, reverse=true)
 //            applySelectedItemsStatus( prevOp.indices)
         }
     }
@@ -273,44 +301,51 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
 
         val resetItems = snapshot.items.toMutableList()
 
+        val s =  state.indicesStatus.toMutableMap()
         var i = nearestSnapshotIndex
         do {
-            removeSelectedItemsStatus(list = resetItems)
+            removeSelectedItemsStatus(list = resetItems, ignoreStack = true )
             history.getOperation(i)?.let { op ->
 
                 applyOperation(resetItems, op)
-                applyOperationIndicesStatus(resetItems, op)
+
 //                selectedIndices.addAll(op.indices)
 
                 history.getIndices(i)?.let {
-                    Log.d("INDICES_TEST", "${it.stack}")
                     copyToState(it)
                 }
+                applyOperationIndicesStatus(resetItems, op)
             }
 
             i++
         } while (i <= targetIndex)
 
-        history.getOperation(i - 1)?.let { op ->
-            Log.d("setStep_TEST","")
-//            applySelectedItemsStatus(op.indices, resetItems)
-        }
+
+        val operation = history.getOperation(i)
+//        operation?.let{
+//            val idxs = it.indices.min()..it.indices.max()
+//            selectPartitionItens(idxs)
+//        }
+
+
+//        history.getOperation(i - 1)?.let { op ->
+////            applySelectedItemsStatus(op.indices, resetItems)
+//        }
         history.setHistoryIndex(targetIndex)
 
         val isSorted = targetIndex == completedSortingAt
         state = state.copy(items = resetItems, isSorted = isSorted)
 
-        Log.d(
-            "SET_STEP_STACK_TEST", "${
-                history.getIndices(history.getHistoryIndex())
-                    ?.stack
-            }"
-        )
+
+
+        val r = state.stack.lastOrNull()?.let {it.first..it.second}
+        if (r != null) {
+            selectPartitionItens(r)
+        }
         return history.getCurrentOperation()
     }
 
     override fun isSorted(): Boolean{
-        Log.d("IsSorted()","${completedSortingAt}; ${history.getHistoryIndex()}; ${completedSortingAt == history.getHistoryIndex()}")
         return completedSortingAt == history.getHistoryIndex()
     }
 
@@ -339,12 +374,16 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
         indices: Iterable<Int> = state.indicesStatus.keys,
         list: MutableList<Item> = state.items,
         lastStack: Pair<Int, Int>? = null,
+        ignoreStack:Boolean = false,
         predicate: ((Int, Item) -> Boolean)? = null,
     ) {
+//        val duration = measureTimeMillis {
+
         indices.toList().forEach {
             val should = predicate?.invoke(it, list[it]) ?: true
             if (should) {
-                val status2 = calculateItemStatus(Normal, it, list, lastStack)
+                val ls = if (ignoreStack) (-1 to -1) else lastStack
+                val status2 = calculateItemStatus(Normal, it, list, ls)
 //                val status = if (isContainedInLastStackRange(it, list[it])) {
 //                    state.indicesStatus[it] = Partition
 //                    Partition
@@ -393,29 +432,31 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
     ) {
 
         val s1= state.indicesStatus.toMap()
+
         s1.forEach {
             if (it.value != Partition) {
                 state.indicesStatus.remove(it.key)
             }
         }
+            indices.forEach { index ->
+                val should = predicate?.invoke(index, list[index]) ?: true
+                if (should) {
+                    val newStatus = if (status != null) {
+                        calculateItemStatus(status, index, list, lastStack)
+                    } else {
+                        list[index].status
+                    }
 
-        indices.forEach { index ->
-            val should = predicate?.invoke(index, list[index]) ?: true
-            if (should) {
-                val newStatus = if (status != null) {
-                    calculateItemStatus(status, index, list, lastStack)
-                } else {
-                    list[index].status
+                    if (newStatus == Normal) {
+                        state.indicesStatus.remove(index)
+                    } else {
+                        state.indicesStatus[index] = newStatus
+                    }
+                    list.setStatus(index, newStatus)
                 }
-
-                if (newStatus == Normal) {
-                    state.indicesStatus.remove(index)
-                } else {
-                    state.indicesStatus[index] = newStatus
-                }
-                list.setStatus(index, newStatus)
             }
-        }
+
+
 
 
     }
@@ -446,6 +487,8 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
             }
 
             QuickSortAction.SelectingPivot -> {}
+
+            else -> {}
         }
 
 
@@ -468,7 +511,10 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
         val item = list[index]
 //        val isItemInsideCurrentPartition = false
         val isItemInsideCurrentPartition = ls?.let {
-            index in (ls.first..ls.second).sorted()
+            listOf(ls.first, ls.second).sorted().let{
+                index >= it[0] && index <= it[1]
+            } //  (ls.first..ls.second).sorted()
+//            index in listOf(ls.first, ls.second).sorted()//  (ls.first..ls.second).sorted()
         } ?: false
 
         val result: ItemStatus = when (newStatus) {
@@ -490,26 +536,39 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
     private fun applyOperationIndicesStatus(
         list: MutableList<Item>,
         operation: SortOperation<QuickSortAction>,
+        indicesStatus:MutableMap<Int,ItemStatus> = state.indicesStatus,
+        reverse:Boolean = false
     ) {
         when (operation.action) {
             QuickSortAction.Comparing -> {
-                removeSelectedItemsStatus(list = list)
+
+
+//                removeSelectedItemsStatus(list = list)
                 selectPartitionItens( operation.indices[0]..operation.indices[1],list)
 //                applySelectedItemsStatus( operation.indices[0]..operation.indices[1], Partition, list)
                 applySelectedItemsStatus(operation.indices, Selected, list)
             }
 
             QuickSortAction.Completed -> {
-                removeSelectedItemsStatus(list = list)
+
+                val indices = state.indicesStatus.keys
+                removeSelectedItemsStatus(list = list, indices = indices)
+//                removeSelectedItemsStatus(list = list)
             }
 
             QuickSortAction.FindingUnsorted -> {
-                removeSelectedItemsStatus(list = list)
+
+//                val indices = state.indicesStatus.keys
+//                removeSelectedItemsStatus(list = list, indices = indices)
+//                removeSelectedItemsStatus(list = list)
                 applySelectedItemsStatus(operation.indices, Selected, list)
             }
 
             QuickSortAction.PartitionSorted -> {
-                removeSelectedItemsStatus(list = list)
+
+//                val indices = state.indicesStatus.keys
+//                removeSelectedItemsStatus(list = list, indices = indices)
+//                removeSelectedItemsStatus(list = list)
 //                applySelectedItemsStatus( operation.indices[0]..operation.indices[1], Partition, list)
                 applySelectedItemsStatus(operation.indices, Selected, list)
             }
@@ -525,7 +584,10 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
 //                val r = (indicesL + (indicesR ?: emptyList())).toSet()
 //                val range = r.sorted().toList().let{ it[0] to it.last()}
 
-                removeSelectedItemsStatus(list = list)
+
+//                val indices = state.indicesStatus.keys
+//                removeSelectedItemsStatus(list = list, indices = indices)
+//                removeSelectedItemsStatus(list = list)
                 applySelectedItemsStatus(r, Partition, list)
 //                { i, v ->
 //                    v.status == Normal
@@ -533,19 +595,31 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
             }
 
             QuickSortAction.SelectingPivot -> {
-                removeSelectedItemsStatus(list = list)
+
+
+//                removeSelectedItemsStatus(list = list)
+//                val indices = state.low..state.high
+//                val indices = state.indicesStatus.keys
+//                removeSelectedItemsStatus(list = list, indices = indices)
+
+                selectPartitionItens( state.low..state.high,list)
 //                val (first, last) = state.stack.last()
 //                applySelectedItemsStatus( first..last, Partition, list)
-
+//                val partIdx = (state.low..state.high).toList()
                 applySelectedItemsStatus(operation.indices, Selected, list)
             }
 
             QuickSortAction.Swapping -> {
-                removeSelectedItemsStatus(list = list)
+
+//                val indices = state.indicesStatus.keys
+//                removeSelectedItemsStatus(list = list, indices = indices)
+//                removeSelectedItemsStatus(list = list)
 //                applySelectedItemsStatus( operation.indices[0]..operation.indices[1], Partition, list)
 
                 applySelectedItemsStatus(operation.indices, Selected, list)
             }
+
+            else -> {}
         }
 
     }
@@ -556,8 +630,13 @@ class QuickSortIterator(val items: List<Item>) : SortIterator<QuickSortAction> {
 //            applySelectedItemsStatus(Partition, it.first..it.second)
 //        }
 
+//        val indices = state.indicesStatus.keys
+//        removeSelectedItemsStatus(list = state.items, indices = indices)
+
         applyOperationIndicesStatus(state.items, operation)
         applyOperation(state.items, operation)
+
+
 
 
         history.addOperation(operation)
@@ -631,14 +710,16 @@ fun partitionSortedOperationFactory(arr: List<Item>, leftIndex: Int, rightIndex:
         )
     )
 
-fun swapOperationFactory(arr: List<Item>, leftIndex: Int, rightIndex: Int) = SortOperation(
-    QuickSortAction.Swapping,
-    listOf(leftIndex, rightIndex),
-    listOfNotNull(
-        arr.elementAtOrNull(leftIndex),
-        arr.elementAtOrNull(rightIndex)
-    )
+fun swapOperationFactory(arr: List<Item>, leftIndex: Int, rightIndex: Int): SortOperation<QuickSortAction.Swapping> {
+    return SortOperation(
+        QuickSortAction.Swapping,
+        listOf(leftIndex, rightIndex),
+        listOfNotNull(
+            arr.elementAtOrNull(leftIndex)?.copy(),
+            arr.elementAtOrNull(rightIndex)?.copy()
+        )
 )
+}
 
 
 fun comparingOperationFactory(arr: List<Item>, leftIndex: Int, rightIndex: Int) = SortOperation(
@@ -657,21 +738,20 @@ fun selectingPivotOperationFactory(arr: List<Item>, leftIndex: Int, rightIndex: 
 fun Stack.addSublistIndices(startIndex: Int, endIndex: Int) = this.add(startIndex to endIndex)
 
 fun selectPivotValue(arr: List<Item>) = arr[0].value
-fun getLeftSwapIndex(arr: List<Item>, leftIndex: Int, pivotValue: Int) =
-    arr.subList(leftIndex, arr.size).indexOfFirst { it.value >= pivotValue } + leftIndex
+fun getLeftSwapIndex(arr: List<Item>, leftIndex: Int, pivotValue: Int):Int {
+//    val sl = arr.subList(leftIndex, arr.size)
+      val idx = arr.indexOfFirst { it.value >= pivotValue }
+    val res = idx + leftIndex
+    return res
+}
+fun getRightSwapIndex(arr: List<Item>, rightIndex: Int, leftIndex:Int, pivotValue: Int): Int {
 
-fun getRightSwapIndex(arr: List<Item>, rightIndex: Int, pivotValue: Int): Int {
-    val subList = arr.subList(0, rightIndex + 1)
-    Log.d(
-        "RIGHT_SWAP_TEST",
-        "rightIndex: $rightIndex; pivot: $pivotValue; ${subList.map { it.value }}; values: ${subList.map { it.value }} "
-    )
-    Log.d(
-        "RIGHT_SWAP_TEST-",
-        "sublist:${arr.subList(0, rightIndex + 1).map { it.value }}; arr: ${arr.map { it.value }}"
-    )
-    return arr.subList(0, rightIndex + 1).indices.reversed()
-        .firstOrNull { arr[it].value <= pivotValue } ?: -1
+    val res = arr.indices.reversed()
+        .firstOrNull { arr[it].value <= pivotValue } ?: (arr.size)
+//    val res = subList.indices.reversed()
+//        .firstOrNull { arr[it].value <= pivotValue } ?: -1
+
+    return res + leftIndex
 }
 
 

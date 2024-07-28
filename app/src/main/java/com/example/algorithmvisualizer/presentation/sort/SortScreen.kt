@@ -1,14 +1,13 @@
 package com.example.algorithmvisualizer.presentation.sort
 
 import android.util.Log
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,16 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -38,17 +31,14 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,140 +46,228 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.algorithmvisualizer.R
-import com.example.algorithmvisualizer.domain.model.Item
-import com.example.algorithmvisualizer.domain.model.SortAction
 import com.example.algorithmvisualizer.domain.model.SortAlgorithmName
-import com.example.algorithmvisualizer.domain.model.SortOperation
 import com.example.algorithmvisualizer.domain.model.name
-import com.example.algorithmvisualizer.presentation.components.BarItem
-import kotlinx.coroutines.launch
 
-
+@NonRestartableComposable
 @Composable
 fun SortRoute(
-    modifier: Modifier = Modifier,
     viewModel: SortViewModel = hiltViewModel(),
 ) {
-    val currentStep by viewModel.currentStep.collectAsState()
-    val currentOperation by viewModel.currentOperation.collectAsState()
-    val currentState by viewModel.currentState.collectAsState()
-
-    val getOperation = remember { { viewModel.currentOperation.value } }
-    val getOperationSize = viewModel.getOperationSize
+    val uiState by viewModel.uiState.collectAsState()
 
 
-    val onSlideChange: (Float) -> Unit = remember { viewModel::onSlideChange }
-    val onPrevStep: () -> Unit = remember { viewModel::onClickPrevStep }
-    val onPlay: () -> Unit = remember { viewModel::onPlay }
-    val onNextStep: () -> Unit = remember { viewModel::onClickNextStep }
-    val onResetClick: () -> Unit = remember { viewModel::onResetClick }
+//    val currentStep by viewModel.currentStep.collectAsState()
+//    val currentOperation by viewModel.currentOperation.collectAsState()
+//    val currentState by viewModel.currentState.collectAsState()
+
+//    val getOperationSize: () -> Int =  viewModel::getOperationSize
+
+
+    val onSlideChange: (Float) -> Unit = remember(viewModel) { viewModel::onSlideChange }
+    val onPrevStep: () -> Unit = remember(viewModel) { viewModel::onClickPrevStep }
+    val onPlay: () -> Unit = remember(viewModel) { viewModel::onPlay }
+    val onNextStep: () -> Unit = remember(viewModel) { viewModel::onClickNextStep }
+    val onResetClick: () -> Unit = remember(viewModel) { viewModel::onResetClick }
     val isPlaying by viewModel.isPlaying.collectAsState()
-
-    val delay by viewModel.delay.collectAsState(0)
-    val setDelay: (Long) -> Unit = remember { viewModel::setDelay }
-
-    val onRandom: () -> Unit = remember { viewModel::onRandomClick }
+//    val isSortInfoVisible by viewModel.isSortInfoVisible.collectAsState()
 
 
     val algorithm by viewModel.algorithmName.collectAsState()
     val onAlgorithmChange: (SortAlgorithmName) -> Unit =
-        remember { viewModel::onAlgorithmChanged }
+        viewModel::onAlgorithmChanged
 
-    LaunchedEffect(currentState) {
-        Log.d("QUICK_TEST_items", currentState.joinToString { it.value.toString() })
-    }
+//    LaunchedEffect(System.currentTimeMillis()) {
+//        Log.d("SORTROUTE_COMP_TEST", "------")
+//    }
 
 
-    LaunchedEffect(currentOperation) {
-        Log.d("QUICK_TEST_operation", "${currentOperation?.action}")
-    }
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    val openDrawer: () -> Unit = remember {
-        {
-            scope.launch {
-                drawerState.open()
-            }
-        }
-    }
+//    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+//    val scope = rememberCoroutineScope()
+//    val openDrawer: () -> Unit = remember {
+//        {
+//            scope.launch {
+//                drawerState.open()
+//            }
+//        }
+//    }
+//
+//    val closeDrawer: () -> Unit = remember {
+//        {
+//            scope.launch {
+//                drawerState.close()
+//            }
+//        }
+//    }
 
-    val closeDrawer: () -> Unit = remember {
-        {
-            scope.launch {
-                drawerState.close()
-            }
-        }
-    }
+//    LaunchedEffect(uiState) {
+////        Log.d("")
+//        Log.d("SORTROUTE_COMP_TEST", "---")
+//        Log.d("SORTROUTE_COMP_TEST", "uiState: $uiState")
+//    }
 
-    AlgorithmNameDrawer(
-        state = drawerState,
+//    LaunchedEffect(currentStep) {
+//        Log.d("SORTROUTE_COMP_TEST","currentStep:$currentStep")
+//    }
+
+//    LaunchedEffect(viewModel) {
+//        Log.d("SORTROUTE_COMP_TEST", "viewModel:$viewModel")
+//    }
+
+//    LaunchedEffect(currentOperation) {
+//        Log.d("SORTROUTE_COMP_TEST", "currentOperation:$currentOperation")
+//    }
+//    LaunchedEffect(currentState) {
+//        Log.d("SORTROUTE_COMP_TEST","currentState: $currentState")
+//    }
+
+//    LaunchedEffect(isPlaying) {
+//        Log.d("SORTROUTE_COMP_TEST", "isPlaying: $isPlaying")
+//    }
+
+
+//    LaunchedEffect(isSortInfoVisible) {
+//        Log.d("SORTROUTE_COMP_TEST","isSortInfoVisible: $isSortInfoVisible")
+//    }
+
+//    LaunchedEffect(getOperation) {
+//        Log.d("SORTSCREEN_COMP_TEST","getOperation")
+//    }
+
+//    LaunchedEffect(getOperationSize) {
+//        Log.d("SORTROUTE_COMP_TEST","getOperationSize: $getOperationSize")
+//    }
+
+//    LaunchedEffect(uiState) {
+//        Log.d("SORTSCREEN_COMP_TEST","itemCount")
+//    }
+//
+//    LaunchedEffect(uiState) {
+//        Log.d("SORTSCREEN_COMP_TEST","itemCount")
+//    }
+//
+//    LaunchedEffect(uiState) {
+//        Log.d("SORTSCREEN_COMP_TEST","itemCount")
+//    }
+
+
+//    AlgorithmNameDrawer(
+//        state = drawerState,
+//        onAlgorithmChange = onAlgorithmChange,
+//        closeDrawer = closeDrawer
+//    ) {
+
+//    val duration = measureTimeMillis {
+
+    SortScreen(
+        onNextStep = onNextStep,
+        onPlay = onPlay,
+        onPrevStep = onPrevStep,
+        getOperationSize = viewModel::getOperationSize,
+        isPlaying = isPlaying,
+        onSlideChange = onSlideChange,
+        algorithm = algorithm,
         onAlgorithmChange = onAlgorithmChange,
-        closeDrawer = closeDrawer
-    ) {
-
-        SortScreen(
-            onNextStep = onNextStep,
-            setDelay = setDelay,
-            onPlay = onPlay,
-            onPrevStep = onPrevStep,
-            currentOperation = currentOperation,
-            getOperation = getOperation,
-            getOperationSize = getOperationSize,
-            delay = delay,
-            isPlaying = isPlaying,
-            currentState = currentState,
-            onSlideChange = onSlideChange,
-            currentStep = currentStep,
-            onRandom = onRandom,
-            algorithm = algorithm,
-            onAlgorithmChange = onAlgorithmChange,
-            onDrawerOpen = openDrawer,
-            onResetClick = onResetClick
-        )
-    }
+        onResetClick = onResetClick,
+        uiState = uiState,
+        modifier = Modifier
+    )
+//    }
 }
 
+
 @Composable
-internal fun SortScreen(
-    currentStep: Int,
-    currentOperation: SortOperation<SortAction>?,
-    currentState: List<Item>,
-
-    getOperation: () -> SortOperation<SortAction>?,
+fun SortScreen(
+    uiState: SortScreenUiState,
     getOperationSize: () -> Int,
-
     onSlideChange: (Float) -> Unit,
     onPrevStep: () -> Unit,
     onPlay: () -> Unit,
     onNextStep: () -> Unit,
-    onRandom: () -> Unit,
     onResetClick: () -> Unit,
     isPlaying: Boolean,
-    delay: Long,
-    setDelay: (Long) -> Unit,
 
     algorithm: SortAlgorithmName,
     onAlgorithmChange: (SortAlgorithmName) -> Unit,
 
-    onDrawerOpen: () -> Unit,
+//    onDrawerOpen: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+//    val rUiState = remember { uiState }
+//    LaunchedEffect(uiState) {
+//        Log.d("SORTSCREEN_COMP_TEST", "rUiState: ${uiState}")
+//    }
+//
+//        LaunchedEffect(currentStep) {
+//        Log.d("SORTSCREEN_COMP_TEST","currentStep: $currentStep")
+//    }
+//    LaunchedEffect(currentOperation) {
+//        Log.d("SORTSCREEN_COMP_TEST", "currentOperation: $currentOperation")
+//    }
+//    LaunchedEffect(currentState) {
+//        Log.d("SORTSCREEN_COMP_TEST","currentState: $currentState")
+//    }
+    LaunchedEffect(uiState) {
+        if (uiState is SortScreenUiState.Completed) {
+            Log.d(
+                "SORTSCREEN_COMP_TEST",
+                "uiState: Completed; " +
+                        "currentStep: ${uiState.currentStep}; " +
+                        "isSortInfoVisible: ${uiState.isSortInfoVisible}; " +
+                        "showValues: ${uiState.showValues}; " +
+                        "showIndices: ${uiState.showIndices}"
+            )
+        } else {
+            Log.d("SORTSCREEN_COMP_TEST", "uiState: $uiState")
+        }
+    }
+//    LaunchedEffect(getOperationSize) {
+//        Log.d("SORTSCREEN_COMP_TEST", "getOperationSize: $getOperationSize")
+//    }
+//    LaunchedEffect(isPlaying) {
+//        Log.d("SORTSCREEN_COMP_TEST", "isPlaying: $isPlaying")
+//    }
+//    LaunchedEffect(isSortInfoVisible) {
+//        Log.d("SORTSCREEN_COMP_TEST","isSortInfoVisible: $isSortInfoVisible")
+//    }
+//    LaunchedEffect(onSlideChange) {
+//        Log.d("SORTSCREEN_COMP_TEST", "onSlideChange: $onSlideChange")
+//    }
 
-    val rCurrentStep = remember(currentStep) { currentStep.toFloat() }
+
+//    LaunchedEffect(onResetClick) {
+//        Log.d("SORTSCREEN_COMP_TEST", "onResetClick: $onResetClick")
+//    }
+//    LaunchedEffect(onNextStep) {
+//        Log.d("SORTSCREEN_COMP_TEST", "onNextStep: $onNextStep")
+//    }
+//    LaunchedEffect(onPrevStep) {
+//        Log.d("SORTSCREEN_COMP_TEST", "onPrevStep: $onPrevStep")
+//    }
+//    LaunchedEffect(algorithm) {
+//        Log.d("SORTSCREEN_COMP_TEST", "algorithm: $algorithm")
+//    }
+//    LaunchedEffect(onAlgorithmChange) {
+//        Log.d("SORTSCREEN_COMP_TEST", "onAlgorithmChange: $onAlgorithmChange")
+//    }
+
+//    val rCurrentStep = remember(currentStep) { currentStep }
     var expanded by remember { mutableStateOf(false) }
     val onDismissRequest = remember { { expanded = false } }
 
+//    val uiIsLoading = uiState is SortScreenlUiState.Completed
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(horizontal = 20.dp)
+            .border(1.dp, Color.Magenta),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -206,7 +284,8 @@ internal fun SortScreen(
                     text = algorithm.name,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
-                    fontSize = 24.sp
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
                 )
             }
             Box(
@@ -214,8 +293,8 @@ internal fun SortScreen(
                     .align(Alignment.TopEnd)
             ) {
                 IconButton(
-                    onClick =
-                    onDrawerOpen
+                    onClick = { expanded = true }
+//                        onDrawerOpen
 
                 ) {
                     Icon(
@@ -229,19 +308,17 @@ internal fun SortScreen(
         }
 
 
-
-
-        Row {
-            Text(
-                text = algorithm.name ?: "",
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable {
-                    onDrawerOpen()
-//                    expanded = true
-                }
-            )
-        }
+//            Row {
+//                Text(
+//                    text = algorithm.name ?: "",
+//                    fontSize = 40.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.clickable {
+//                        onDrawerOpen()
+////                    expanded = true
+//                    }
+//                )
+//            }
 //        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
 //            DropdownMenu(
 //                expanded = expanded,
@@ -258,6 +335,11 @@ internal fun SortScreen(
 //                }
 //            }
 //        }
+//        Column(        modifier = modifier
+//            .fillMaxSize()            ,
+//            verticalArrangement = Arrangement.SpaceBetween,
+//            horizontalAlignment = Alignment.CenterHorizontally) {
+
 
         if (expanded) {
             AlgorithmNameDialog(
@@ -266,82 +348,73 @@ internal fun SortScreen(
                 onCompletion = onDismissRequest
             )
         }
+        Column(Modifier.weight(1f)) {
+            if (uiState is SortScreenUiState.Completed) {
+                if (uiState.isSortInfoVisible) {
+                    Row {
+                        Text(
+                            text = uiState.currentOperation?.action?.name ?: "",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "(${uiState.currentOperation?.indices?.joinToString(separator = ", ")})",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "${
+                                uiState.currentOperation?.indices?.map { i ->
+                                    uiState.items.elementAtOrNull(i)?.copy()?.value ?: ""
+                                }
+                                    ?.joinToString(separator = ", ")
+                            }", fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
 
-        Row {
-            Text(
-                text = currentOperation?.action?.name ?: "",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Row {
-            Text(
-                text = "(${currentOperation?.indices?.joinToString(separator = ", ")})",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = "${
-                    currentOperation?.indices?.map { i -> currentState.elementAtOrNull(i)?.value ?: "" }
-                        ?.joinToString(separator = ", ")
-                }", fontSize = 24.sp, fontWeight = FontWeight.SemiBold
-            )
-        }
-        SortInfoView(currentState)
+                Row(Modifier.weight(1f)) {
+                    BarChart(
+                        items = uiState.items,
+                        showIndices = uiState.showIndices,
+                        showValues = uiState.showValues
+                    )
+                }
 
-        Button(
-            onClick = onRandom,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta)
-        ) {
-            Text(text = "RANDOM")
+                SortSteps(
+                    uiState.currentStep,
+                    onSlideChange,
+                    getOperationSize,
+                    Modifier.padding(horizontal = 20.dp)
+                )
+            }
         }
 
         SortControls(
-            onSliderValueChange = onSlideChange,
             onPlay = onPlay,
             onPrevStep = onPrevStep,
             onNextStep = onNextStep,
-            step = rCurrentStep,
-            getOperationSize = getOperationSize,
             isPlaying = isPlaying,
-            setDelay = setDelay,
-            delay = delay,
             onResetClick = onResetClick
         )
     }
+
 }
+
 
 @Composable
 fun SortControls(
-    onSliderValueChange: (Float) -> Unit,
-    getOperationSize: () -> Int,
     onPrevStep: () -> Unit,
     onPlay: () -> Unit,
     onNextStep: () -> Unit,
     onResetClick: () -> Unit,
-    step: Float,
     isPlaying: Boolean,
-    setDelay: (Long) -> Unit,
-    delay: Long,
     modifier: Modifier = Modifier,
 ) {
-    val opSize = getOperationSize()
-    val playButtonText = remember(isPlaying) { if (isPlaying) "PAUSE" else "Start Sorting" }
-
-    val rOnSliderValueChange = remember { onSliderValueChange }
     val rOnPlay = remember { { onPlay() } }
-
-    val stepText = remember(step) { "${step.toInt()}" }
-
-    val sliderPosition by remember(opSize, step) {
-        mutableFloatStateOf(
-            if (opSize == 0) {
-                0f
-            } else {
-                (step / opSize)
-            }
-        )
-    }
 
     val iconButtonColors = IconButtonDefaults.filledIconButtonColors(
 
@@ -351,165 +424,116 @@ fun SortControls(
         contentColor = MaterialTheme.colorScheme.onError
     )
 
+    Column(
+        modifier = modifier.padding(vertical = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.wrapContentHeight()
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Reset")
+                Spacer(Modifier.height(4.dp))
+                IconButton(
+                    onClick = onResetClick,
+                    colors = iconButtonColors,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(painterResource(id = R.drawable.ic_rotate_cw), "prev")
+                }
+            }
 
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Prev")
+                Spacer(Modifier.height(4.dp))
+                IconButton(
+                    onClick = onPrevStep,
+                    colors = iconButtonColors,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(painterResource(id = R.drawable.ic_chevron_left), "prev")
+                }
+            }
 
-    Row {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                val text: String
+                val colors = if (isPlaying) pauseColors else iconButtonColors
+
+                val icon = if (isPlaying) {
+                    text = "Pause"
+                    R.drawable.ic_pause
+                } else {
+                    text = "Play"
+                    R.drawable.ic_play
+                }
+
+                Text(text)
+                Spacer(Modifier.height(4.dp))
+                IconButton(
+                    onClick = rOnPlay,
+                    colors = colors,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(painterResource(id = icon), "play")
+                }
+            }
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Next")
+                Spacer(Modifier.height(4.dp))
+                IconButton(
+                    onClick = onNextStep,
+                    colors = iconButtonColors,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(painterResource(id = R.drawable.ic_chevron_right), "next")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SortSteps(
+    step: Int,
+    onSliderValueChange: (Float) -> Unit,
+    getOperationSize: () -> Int,
+    modifier: Modifier = Modifier,
+) {
+    val opSize = getOperationSize()
+    val stepText = remember(step) { "$step" }
+    val sliderPosition by remember(opSize, step) {
+        mutableFloatStateOf(
+            if (opSize == 0) {
+                0f
+            } else {
+                (step.toFloat() / opSize)
+            }
+        )
+    }
+
+    Column(modifier) {
         Slider(
             value = sliderPosition,
-            onValueChange = rOnSliderValueChange,
+            onValueChange = onSliderValueChange,
             steps = opSize,
+            modifier = Modifier.fillMaxWidth()
         )
-    }
-    Text(text = stepText, fontSize = 56.sp)
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = Modifier
-//            .border(1.dp, Color.Red)
-            .wrapContentHeight()
-//            .fillMaxWidth()
-    ) {
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Reset")
-            Spacer(Modifier.height(4.dp))
-            IconButton(
-                onClick = onResetClick,
-                colors = iconButtonColors,
-                modifier = Modifier.size(64.dp)
-            ) {
-                Icon(painterResource(id = R.drawable.ic_rotate_cw), "prev")
-            }
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Prev")
-            Spacer(Modifier.height(4.dp))
-            IconButton(
-                onClick = onPrevStep,
-                colors = iconButtonColors,
-                modifier = Modifier.size(64.dp)
-            ) {
-                Icon(painterResource(id = R.drawable.ic_chevron_left), "prev")
-            }
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            var text ="Play"
-//            var text by remember { mutableStateOf("") }
-
-
-            val colors = if (isPlaying) pauseColors else iconButtonColors
-
-            val icon = if (isPlaying) {
-                text="Pause"
-                R.drawable.ic_pause
-            } else {
-                text="Play"
-                R.drawable.ic_play
-            }
-
-            Text(text)
-            Spacer(Modifier.height(4.dp))
-            IconButton(
-                onClick = rOnPlay,
-                colors =  colors,
-                modifier = Modifier.size(64.dp)
-            ) {
-
-
-                Icon(painterResource(id = icon), "play")
-            }
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Next")
-            Spacer(Modifier.height(4.dp))
-            IconButton(
-                onClick = onNextStep,
-                colors = iconButtonColors,
-                modifier = Modifier.size(64.dp)
-            ) {
-                Icon(painterResource(id = R.drawable.ic_chevron_right), "next")
-//            Text("Next Step")
-            }
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Step: ", fontSize = 18.sp)
+            Spacer(Modifier.width(8.dp))
+            Text(text = stepText, fontWeight = FontWeight.Medium, fontSize = 24.sp)
         }
     }
 
-    var delayText by remember(delay) { mutableStateOf(delay) }
-    Row {
-        TextField(
-            value = "$delayText", onValueChange = {
-                delayText = it.filter { it.isDigit() }.toLongOrNull() ?: 0
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        Button(onClick = { setDelay(delayText) }) {
-            Text(text = "SAVE DELAY")
-        }
-    }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun SortInfoView(items: List<Item>) {
-
-    val spacing = 4.dp
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val totalWidth = this.maxWidth
-        val itemCount = items.size
-        val availableWidth = totalWidth - (spacing * (itemCount - 1))
-        val itemWidth by remember(items.size) {
-            derivedStateOf {
-                (availableWidth / itemCount.plus(1)).coerceIn(
-                    4.dp,
-                    40.dp
-                )
-            }
-        }
-        val rItems = remember(items) { items }
-
-        val height = remember(rItems.size) { rItems.maxOfOrNull { it.value } ?: 100 }
-        Column {
-            // Gráfico dos Itens
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp * height)
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                items(rItems, key = { item -> item.id }) { item ->
-                    BarItem(
-                        value = item.value,
-                        modifier = Modifier
-                            .width(itemWidth)
-                            .animateItemPlacement(),
-                        barModifier = Modifier.width(itemWidth),
-                        status = item.status
-                    )
-                }
-            }
-
-            // Índices abaixo das barras
-            Row(
-                Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                for (n in 0..rItems.lastIndex) {
-                    Text(
-                        text = "$n",
-                        modifier = Modifier.width(itemWidth),
-                        textAlign = TextAlign.Center,
-                        fontSize = 16.sp,
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun AlgorithmNameDialog(
@@ -518,10 +542,11 @@ fun AlgorithmNameDialog(
     modifier: Modifier = Modifier,
     onCompletion: () -> Unit = {},
 ) {
-    Dialog(onDismissRequest = { onDismissRequest() }
+    Dialog(
+        onDismissRequest = { onDismissRequest() },
     ) {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(4.dp)
                 .clip(RoundedCornerShape(16.dp))
@@ -534,7 +559,6 @@ fun AlgorithmNameDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            Log.d("ALGO_NAMME_TEST", "CLICOU EM ${it.name}")
                             onAlgorithmChange(it)
                             onCompletion()
                         }
@@ -563,7 +587,8 @@ fun AlgorithmNameDrawer(
     ModalNavigationDrawer(
         drawerState = state,
         drawerContent = { DrawerContent(onAlgorithmChange, closeDrawer) },
-        content = content
+        content = content,
+        modifier = modifier
     )
 }
 
@@ -573,7 +598,7 @@ fun DrawerContent(
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ModalDrawerSheet {
+    ModalDrawerSheet(modifier = modifier) {
         SortAlgorithmName.entries.map {
             NavigationDrawerItem(label = { Text(it.name) }, selected = false,
                 onClick = {
@@ -582,9 +607,8 @@ fun DrawerContent(
                 })
 
         }
-//        NavigationDrawerItem(label = { Text("LALALA") }, selected = false, onClick = { })
-//        NavigationDrawerItem(label = { Text("LALALA") }, selected = false, onClick = { })
-//        NavigationDrawerItem(label = { Text("LALALA") }, selected = false, onClick = { })
     }
 }
+
+
 

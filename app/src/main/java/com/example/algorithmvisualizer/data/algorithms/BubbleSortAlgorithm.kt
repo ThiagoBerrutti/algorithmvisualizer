@@ -156,7 +156,6 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
 
         if (completedSortingAt == null) {
             completedSortingAt = history.getHistoryIndex()
-            Log.d("COMPLETE_SORT_TEST", "$completedSortingAt")
         }
         state = state.copy(isSorted = true)
         return null
