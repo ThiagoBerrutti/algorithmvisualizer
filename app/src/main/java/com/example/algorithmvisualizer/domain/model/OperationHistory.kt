@@ -1,19 +1,22 @@
 package com.example.algorithmvisualizer.domain.model
 
-class OperationHistory<TAction:SortAction> {
-    private val operations = mutableMapOf<Int, SortOperation<TAction>>()
+import com.example.algorithmvisualizer.data.util.BubbleSortOperation
+import com.example.algorithmvisualizer.data.util.ISortOperation
+
+class OperationHistory<TOperation: ISortOperation> {
+    private val operations = mutableMapOf<Int, TOperation>()
     private var historyIndex = -1
 
-    fun addOperation(operation: SortOperation<TAction>) {
+    fun addOperation(operation: TOperation) {
         historyIndex++
         operations.putIfAbsent(historyIndex, operation)
     }
 
-    fun getOperation(index: Int): SortOperation<TAction>? {
+    fun getOperation(index: Int): TOperation? {
         return operations[index]
     }
 
-    fun getCurrentOperation(): SortOperation<TAction>? {
+    fun getCurrentOperation(): TOperation? {
         return getOperation(historyIndex)
     }
 

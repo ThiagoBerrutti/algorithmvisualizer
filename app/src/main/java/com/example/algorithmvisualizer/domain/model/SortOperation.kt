@@ -18,8 +18,8 @@ package com.example.algorithmvisualizer.domain.model
 //     val items: List<Item>
 //)
 
-data class SortOperation<out T: SortAction>(
-     val action: T,
-     val indices: List<Int>,
-     val items: List<Item>
-)
+//data class SortOperation<out T: SortAction>(
+//     val action: T,
+//     val indices: List<Int>,
+//     val items: List<Item>
+//)

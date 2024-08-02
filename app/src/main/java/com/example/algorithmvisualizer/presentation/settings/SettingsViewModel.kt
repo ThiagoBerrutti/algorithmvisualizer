@@ -34,29 +34,27 @@ class SettingsViewModel @Inject constructor(
     private val repo: PreferencesRepository,
 ) : ViewModel() {
 
-//    private var _state = MutableStateFlow(SettingsState())
+
     private var stt = mutableStateOf(SettingsState())
 
-//    var f = MutableStateFlow(SettingsState())
-//    private val state: StateFlow<SettingsState> = _state
-
-//    private val userData = repo.userData
 
     val uiState: StateFlow<SettingsUiState> = repo.userData
-        .onEach { stt.value=stt.value.copy(
-            delay = "${it.delay}",
-            showInfo = it.isSortInfoVisible,
-            showIndices = it.showIndices,
-            showValues = it.showValues
-        ) }
-        .map{ data ->
-        SettingsUiState.Success(
-            delay = "${data.delay}",
-            isSortInfoVisible = data.isSortInfoVisible,
-            showIndices = data.showIndices,
-            showValues = data.showValues,
-        )
-    }
+        .onEach {
+            stt.value = stt.value.copy(
+                delay = "${it.delay}",
+                showInfo = it.isSortInfoVisible,
+                showIndices = it.showIndices,
+                showValues = it.showValues
+            )
+        }
+        .map { data ->
+            SettingsUiState.Success(
+                delay = "${data.delay}",
+                isSortInfoVisible = data.isSortInfoVisible,
+                showIndices = data.showIndices,
+                showValues = data.showValues,
+            )
+        }
 //        .onEach { Log.d("UISTATE_USERDATA_TEST", "#2: $it") ; delay(100)}//
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState.Loading)
 
@@ -66,8 +64,6 @@ class SettingsViewModel @Inject constructor(
 
     fun onEvent(event: SettingsUiEvent) {
         viewModelScope.launch {
-//            Log.d("SETTINGS_VM_EVENT_TEST", "$event")
-            delay(1000)
             when (event) {
                 is SettingsUiEvent.SaveDelayClick -> {
                     withContext(ioScope.coroutineContext) {
@@ -113,16 +109,32 @@ class SettingsViewModel @Inject constructor(
                         }
                     }
                 }
+
+                SettingsUiEvent.OnSaveClick -> {
+//                    withContext(ioScope.coroutineContext) {
+                        Log.d("ONSAVECLICK_TEST","delay: ${stt.value.delay}")
+                        val value = stt.value.delay.let { d ->
+                            if (d.isNotBlank() && d.isDigitsOnly()) {
+                                d.toLong()
+                            } else {
+                                stt.value = stt.value.copy(delay = stt.value.delay)
+                                stt.value.delay.toLongOrNull() ?: 69
+                            }
+                        }
+                        repo.saveDelay(value)
+//                    }
+                }
             }
         }
     }
 }
 
 sealed class SettingsUiEvent {
-    data object ShowInfoClick : SettingsUiEvent()
-    data object ShowIndicesClick : SettingsUiEvent()
-    data object ShowValuesClick : SettingsUiEvent()
     data class SaveDelayClick(val delay: String) : SettingsUiEvent()
+    data object OnSaveClick : SettingsUiEvent()
+    data object ShowIndicesClick : SettingsUiEvent()
+    data object ShowInfoClick : SettingsUiEvent()
+    data object ShowValuesClick : SettingsUiEvent()
     data class OnDelayTextChange(val text: String) : SettingsUiEvent()
 
 }

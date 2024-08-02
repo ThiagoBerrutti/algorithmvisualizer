@@ -13,7 +13,7 @@ enum class TopDestination(val route: String, val label: String, @DrawableRes val
     ),
     LIST_EDIT_SCREEN_ROUTE(
         route = "LIST_EDIT_SCREEN_ROUTE",
-        label = "Config",
+        label = "List",
         icon = R.drawable.ic_settings_2
     ),
 
@@ -25,7 +25,7 @@ enum class TopDestination(val route: String, val label: String, @DrawableRes val
 
 }
 
-private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopDestination) =
-    this?.hierarchy?.any {
-        it.route?.contains(destination.name, true) ?: false
-    } ?: false
+//private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopDestination) =
+//    this?.hierarchy?.any {
+//        it.route?.contains(destination.name, true) ?: false
+//    } ?: false

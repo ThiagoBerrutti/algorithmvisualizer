@@ -8,7 +8,8 @@ data class QuickSortState(
     val r: Int = high,
     val stack: MutableList<Pair<Int, Int>> = mutableListOf(),
     val returnPoint: Int = 0,
-    val pivot: Int = 0,
+    val pivotValue: Int = 0,
+    val pivotIndex:Int = 0,
     val partitioning: Boolean = false,
     val indicesStatus: MutableMap<Int,ItemStatus> = mutableMapOf(),
     val isSorted: Boolean = false,
@@ -37,6 +38,7 @@ data class QuickSortIndices(
         os valores 'pivot' e 'partitioning'. sem falar que outros algoritmos podem ter outras
         variaveis especificas para seu funcionamento */
     val pivot: Int,
+    val pivotIndex:Int,
     val partitioning: Boolean,
     val stack: MutableList<Pair<Int, Int>>,
 )
@@ -47,7 +49,8 @@ fun QuickSortState.getIndices() = QuickSortIndices(
     l=l,
     r= r,
     returnPoint = returnPoint,
-    pivot = pivot,
+    pivot = pivotValue,
+    pivotIndex = pivotIndex,
     partitioning = partitioning,
     stack= stack
 )

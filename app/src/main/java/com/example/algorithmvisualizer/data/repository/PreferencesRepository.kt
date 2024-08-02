@@ -2,7 +2,6 @@ package com.example.algorithmvisualizer.data.repository
 
 //import kotlinx.coroutines.flow.combine
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -17,7 +16,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -32,15 +30,16 @@ import kotlinx.serialization.json.Json
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class PreferencesRepository(val context: Context) {
-    private val data = context.dataStore.data
-        .catch { emit(emptyPreferences()) }
+//    private val data = context.dataStore.data
+//        .catch { emit(emptyPreferences()) }
 
 
     private val delay: Flow<Long?> =
         context.dataStore.data.map { it[PreferencesKeys.DELAY_MS] }
 
-    private val showIndices = context.dataStore.data.map{it[PreferencesKeys.SHOW_INDICES] ?:false}
-    private val showValues = context.dataStore.data.map{it[PreferencesKeys.SHOW_VALUES] ?: false}
+    private val showIndices =
+        context.dataStore.data.map { it[PreferencesKeys.SHOW_INDICES] ?: false }
+    private val showValues = context.dataStore.data.map { it[PreferencesKeys.SHOW_VALUES] ?: false }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -118,19 +117,17 @@ class PreferencesRepository(val context: Context) {
         emit(randomValues)
     }
 
-    suspend fun saveShowIndices(show:Boolean){
+    suspend fun saveShowIndices(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_INDICES] = show
         }
     }
 
-    suspend fun saveShowValues(show:Boolean){
+    suspend fun saveShowValues(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_VALUES] = show
         }
     }
-
-
 
 
 }

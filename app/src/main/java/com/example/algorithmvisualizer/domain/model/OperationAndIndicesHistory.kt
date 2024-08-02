@@ -1,13 +1,15 @@
 package com.example.algorithmvisualizer.domain.model
 
-class OperationAndIndicesHistory<TAction: SortAction, TIndices>(
-    val operation: OperationHistory<TAction> = OperationHistory(),
+import com.example.algorithmvisualizer.data.util.ISortOperation
+
+class OperationAndIndicesHistory<TOperation: ISortOperation, TIndices>(
+    val operation: OperationHistory<TOperation> = OperationHistory(),
     val indices: IndicesHistory<TIndices>,
 ) {
     // Operations
-    fun addOperation(operation: SortOperation<TAction>) = this.operation.addOperation(operation)
-    fun getOperation(index: Int): SortOperation<TAction>? = operation.getOperation(index)
-    fun getCurrentOperation(): SortOperation<TAction>? = operation.getCurrentOperation()
+    fun addOperation(operation: TOperation) = this.operation.addOperation(operation)
+    fun getOperation(index: Int): TOperation? = operation.getOperation(index)
+    fun getCurrentOperation(): TOperation? = operation.getCurrentOperation()
     fun getOperationSize(): Int = operation.getSize()
     fun getHistoryIndex(): Int = operation.getHistoryIndex()
     fun decrementHistoryIndex(): Int = operation.decrementHistoryIndex()

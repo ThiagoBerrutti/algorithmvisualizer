@@ -1,16 +1,14 @@
 package com.example.algorithmvisualizer.presentation.sort
 
-import android.util.Log
-import androidx.compose.runtime.Stable
+//import com.example.algorithmvisualizer.domain.model.SortOperation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.algorithmvisualizer.data.repository.PreferencesRepository
+import com.example.algorithmvisualizer.data.util.ISortOperation
 import com.example.algorithmvisualizer.domain.model.BubbleSortAlgorithm
 import com.example.algorithmvisualizer.domain.model.Item
 import com.example.algorithmvisualizer.domain.model.QuickSortAlgorithm
-import com.example.algorithmvisualizer.domain.model.SortAction
 import com.example.algorithmvisualizer.domain.model.SortAlgorithmName
-import com.example.algorithmvisualizer.domain.model.SortOperation
 import com.example.algorithmvisualizer.presentation.utils.generateItemsFrom
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +17,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,34 +32,42 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.roundToInt
-import kotlinx.coroutines.flow.update
 
-sealed class SortScreenUiState{
-    data object Loading: SortScreenUiState()
+
+data class ItemList(
+    val items: List<Item>,
+    val id: String,
+)
+
+sealed class SortScreenUiState {
+    data object Loading : SortScreenUiState()
     data class Completed(
-        val items:List<Item>,
-        val isSortInfoVisible:Boolean,
-        val showIndices:Boolean,
-        val showValues:Boolean,
-        val currentStep:Int,
-        val currentOperation: SortOperation<SortAction>?
-    ): SortScreenUiState()
+        val items: ItemList,
+//        val items: List<Item>,
+        val isSortInfoVisible: Boolean,
+        val showIndices: Boolean,
+        val showValues: Boolean,
+        val currentStep: Int,
+        val currentOperation: ISortOperation?,
+    ) : SortScreenUiState()
 }
 
 @HiltViewModel
 class SortViewModel @Inject constructor(
-    private val preferencesRepo: PreferencesRepository,
-): ViewModel() {
+    preferencesRepo: PreferencesRepository,
+) : ViewModel() {
 //    val uiState = MutableStateFlow<SortScreenlUiState>(SortScreenlUiState.Loading)
 
     private val defaultScope = CoroutineScope(Dispatchers.Default)
     private val ioScope = CoroutineScope(Dispatchers.IO)
-    private val mainScope = CoroutineScope(Dispatchers.Main)
-    private val unconfinedScope = CoroutineScope(Dispatchers.Unconfined)
+//    private val mainScope = CoroutineScope(Dispatchers.Main)
+//    private val unconfinedScope = CoroutineScope(Dispatchers.Unconfined)
 
     private val _initialItems: MutableStateFlow<List<Item>?> = MutableStateFlow(null)
 
@@ -86,33 +91,26 @@ class SortViewModel @Inject constructor(
         .stateIn(ioScope, SharingStarted.Eagerly, null)
 
     private val _currentState = MutableStateFlow<List<Item>?>(null)
+
     @OptIn(FlowPreview::class)
-    val currentState: StateFlow<List<Item>?> get() = _currentState
-//        .sample(16)
-//        .debounce(100)
-//        .throttle(16)
-        .stateIn(defaultScope,SharingStarted.Eagerly, _currentState.value)
+//    val currentState: StateFlow<List<Item>?>
+//        get() = _currentState
+////        .sample(16)
+////        .debounce(100)
+////        .throttle(16)
+//            .stateIn(defaultScope, SharingStarted.Eagerly, _currentState.value)
 
     fun getOperationSize(): Int {
-        return sortIterator.value?.getOperationSize?.invoke() ?:  0
+        return sortIterator.value?.getOperationSize?.invoke() ?: 0
     }
 //    val getOperationSize: () -> Int = sortIterator.value?.getOperationSize ?: { 0 }
 
     private val _currentStep = MutableStateFlow(0)
-    val currentStep: StateFlow<Int> get() = _currentStep
-//        .debounce(100)
-//        .sample(16)
-//
-////        .filterNotNull()
-        .stateIn(defaultScope,SharingStarted.Lazily, _currentStep.value)
+    val currentStep: StateFlow<Int>
+        get() = _currentStep
+            .stateIn(defaultScope, SharingStarted.Lazily, _currentStep.value)
 
-    private val _currentOperation = MutableStateFlow<SortOperation<SortAction>?>(null)
-    val currentOperation: StateFlow<SortOperation<SortAction>?> get() = _currentOperation
-//        .debounce(100)
-
-//        .sample(16)
-//        .filterNotNull()
-        .stateIn(defaultScope,SharingStarted.Eagerly, _currentOperation.value)
+    private val _currentOperation = MutableStateFlow<ISortOperation?>(null)
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> get() = _isPlaying
@@ -124,29 +122,49 @@ class SortViewModel @Inject constructor(
     private val delay = userData.map { it.delay }
     private val isSortInfoVisible = userData.map { it.isSortInfoVisible }
 
+
+    private val listId = userData
+        .map { it.numbersList }
+        .distinctUntilChanged()
+        .map { "${it.hashCode()}" }
+
+    private val itemList = userData.map { it.numbersList }
+        .distinctUntilChanged()
+//        .map { ItemList(emptyList(), UUID.randomUUID().toString()) }
+        .map { ItemList(emptyList(), "${it.hashCode()}") }
+        .combine(_currentStep) { list, _ -> list }
+        .combine(sortIterator.filterNotNull()) { list, iterator ->
+            list.copy(items = iterator.getCurrentState())
+        }
+
+    val settings = userData.map {
+        Triple(
+            it.isSortInfoVisible,
+            it.showIndices,
+            it.showValues,
+        )
+    }
+
     val uiState: StateFlow<SortScreenUiState> = combine(
-        userData,
+        settings,
         sortIterator.filterNotNull(),
-        isSortInfoVisible,
         currentStep,
-        _currentOperation
-    ) { userData, iterator, isVisible, step, operation ->
+        _currentOperation,
+        itemList
+    ) { settings, iterator, step, operation, itemList ->
         SortScreenUiState.Completed(
-            items = iterator.getCurrentState(),
-            isSortInfoVisible = isVisible,
-            showIndices = userData.showIndices,
-            showValues = userData.showValues,
+            items = itemList,
+            isSortInfoVisible = settings.first,
+            showIndices = settings.second,
+            showValues = settings.third,
             currentStep = step,
             currentOperation = operation
         )
     }
         .conflate()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SortScreenUiState.Loading)
+        .stateIn(defaultScope, SharingStarted.WhileSubscribed(5_000), SortScreenUiState.Loading)
 
     init {
-//        Log.d("SORT_VIEWMODEL_TEST","init")
-
-
         viewModelScope.launch {
 //            currentStep.onEach{
 //                Log.d("SORT_VIEWMODEL_TEST step","$it")
@@ -182,70 +200,44 @@ class SortViewModel @Inject constructor(
 
             // Atualiza os itens quando houver uma mudança nos itens salvos
             userData.map { it.numbersList }
-//                .distinctUntilChanged()
                 .onEach { numbersList ->
-
                     stopPlaying()
                     val list = generateItemsFrom(numbersList)
-//                    val list = generateStaticItems(15)
                     _initialItems.update { list }
 
                     resetStepAndOperation()
                 }
                 .launchIn(defaultScope)
 
-            // Coleta os valores do Flow original e atualiza o MutableStateFlow
-//            combine(
-////                _currentState.filterNotNull(),
-//                sortIterator.filterNotNull(),
-//                isSortInfoVisible,
-//                currentStep
-//            ){ iterator, isVisible, step ->
-//                SortScreenlUiState.Completed(
-//                    items = iterator.getCurrentState(),
-//                    isSortInfoVisible = isVisible,
-//                    currentStep = step
-//                )
-//            }.onEach {
-//            }
-//            {iterator, isVisible -> iterator to isVisible
-//
-//            }
-                sortIterator.filterNotNull().onEach { iterator ->
-                    _currentState.update { iterator.getCurrentState() }
-                    _currentOperation.update { null }
-//                    getOperationSize = iterator.getOperationSize
-//                    uiState.update { SortScreenlUiState.Completed(
-//                        iterator.getCurrentState(),
-////
-//                    )
-//                    }
-//            }.launchIn(ioScope)
+            sortIterator.filterNotNull().onEach { iterator ->
+                _currentState.update { iterator.getCurrentState() }
+                _currentOperation.update { null }
             }.launchIn(defaultScope)
-
-
-//            uiState.update { SortScreenlUiState.Completed }
-
         }
     }
 
 
     private fun resetStepAndOperation() {
-        _currentStep.update{0}
+        _currentStep.update { 0 }
         _currentOperation.update { null }
     }
 
 
     private suspend fun nextStep() =
         coroutineScope {
+//            if (sortIterator.value!!.isSorted()) {
+//                return@coroutineScope
+//            }
+
             val operation = sortIterator.value!!.next()
             _currentOperation.update { operation }
             _currentState.update { sortIterator.value!!.getCurrentState() }
 
             val size = sortIterator.value!!.getOperationSize()
-            if (_currentStep.value < size) {
-                _currentStep.update { it +1}
-            }
+            _currentStep.update { sortIterator.value!!.getCurrentStep()+1 }
+//            if (_currentStep.value < size) {
+//                _currentStep.update { it + 1 }
+//            }
         }
 
     fun onClickNextStep() {
@@ -264,23 +256,30 @@ class SortViewModel @Inject constructor(
                 val startTime = System.currentTimeMillis()
 
                 playJob =
-                    combine(_currentStep, delay, sortIterator){ step,delay,iterator -> Triple(step,delay,iterator)}
+                    combine(_currentStep, delay, sortIterator) { step, delay, iterator ->
+                        Triple(
+                            step,
+                            delay,
+                            iterator
+                        )
+                    }
 //                    .combine(delay) { step, delay -> step to delay }
-                    .onEach {
+                        .onEach {
 //                        Log.d("PlayJob_emit","$it")
-                        val (step, delay) = it
-                        nextStep()
-                        delay(delay)
-                    }
+                            val (_, delay) = it
+                            nextStep()
+                            delay(delay)
+                        }
                         .takeWhile { x ->
-                        !sortIterator.value!!.isSorted() && (until?.let { x.first < it } ?: true)
-                    }
-                    .onCompletion {
-                        val duration = System.currentTimeMillis() - startTime
+                            !sortIterator.value!!.isSorted() && (until?.let { x.first < it }
+                                ?: true)
+                        }
+                        .onCompletion {
+//                            val duration = System.currentTimeMillis() - startTime
 //                        Log.d("PlayJob", "Duration: ${duration}ms")
-                        stopPlaying()
-                    }
-                .launchIn(defaultScope)
+                            stopPlaying()
+                        }
+                        .launchIn(defaultScope)
             }
 
         }
@@ -293,7 +292,7 @@ class SortViewModel @Inject constructor(
                 stopPlaying()
                 return@launch
             }
-            val UNTIL:Int? = null
+            val UNTIL: Int? = null
             stopPlaying()
             play(UNTIL)
         }
@@ -304,13 +303,14 @@ class SortViewModel @Inject constructor(
             if (_currentStep.value <= 0) {
                 return@withContext
             }
-            stopPlaying()
+//            stopPlaying()
 
             val operation = sortIterator.value!!.prev()
             _currentOperation.update { operation }
             _currentState.update { sortIterator.value!!.getCurrentState() }
-            if (_currentStep.value >= 0) {
-                _currentStep.update {it -1}
+            if (_currentStep.value > 0) {
+                _currentStep.update { sortIterator.value!!.getCurrentStep()+1 }
+//                _currentStep.update { it - 1 }
             }
         }
     }
@@ -352,24 +352,18 @@ class SortViewModel @Inject constructor(
         }
     }
 
+    fun onStepValueChange(value:Int){
+        viewModelScope.launch {
+            onSetStep(value)
+        }
+    }
+
     fun onSlideChange(value: Float) {
         viewModelScope.launch {
             val step = (value * getOperationSize()).roundToInt()
             onSetStep(step)
         }
     }
-
-    fun setDelay(value: Long) {
-        viewModelScope.launch {
-            preferencesRepo.saveDelay(value)
-        }
-    }
-
-    fun hasFinishedSorting(): Boolean {
-        return sortIterator.value!!.completedSortingAt != null
-    }
-
-    fun isSorted() = sortIterator.value!!.isSorted()
 
     fun onAlgorithmChanged(algorithmName: SortAlgorithmName) {
         viewModelScope.launch {
@@ -379,12 +373,12 @@ class SortViewModel @Inject constructor(
         }
     }
 
-    private suspend fun reset(algorithmName: SortAlgorithmName?=null){
+    private suspend fun reset(algorithmName: SortAlgorithmName? = null) {
         coroutineScope {
 
-        stopPlaying()
-        resetList()
-        algorithmUpdates.emit(algorithmName ?: this@SortViewModel.algorithmName.value)
+            stopPlaying()
+            resetList()
+            algorithmUpdates.emit(algorithmName ?: this@SortViewModel.algorithmName.value)
         }
     }
 
@@ -404,17 +398,7 @@ class SortViewModel @Inject constructor(
     fun onResetClick() {
         viewModelScope.launch {
             algorithmUpdates.emit(algorithmName.value)
-                reset()
-        }
-    }
-
-    fun onRandomClick() {
-        viewModelScope.launch {
-            withContext(ioScope.coroutineContext) {
-                preferencesRepo.saveNumbersList(
-                    (0..5).map { (2..50).random() }
-                )
-            }
+            reset()
         }
     }
 

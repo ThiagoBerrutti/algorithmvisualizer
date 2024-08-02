@@ -1,15 +1,18 @@
 package com.example.algorithmvisualizer.data.algorithms
 
-import android.util.Log
+import com.example.algorithmvisualizer.data.util.BubbleSortOperation
+import com.example.algorithmvisualizer.data.util.ISortOperation
+import com.example.algorithmvisualizer.data.util.QuickSortOperation
 import com.example.algorithmvisualizer.domain.model.BubbleSortAction
 import com.example.algorithmvisualizer.domain.model.BubbleSortIndicesHistory
 import com.example.algorithmvisualizer.domain.model.Item
 import com.example.algorithmvisualizer.domain.model.ItemStatus
 import com.example.algorithmvisualizer.domain.model.OperationAndIndicesHistory
+import com.example.algorithmvisualizer.domain.model.QuickSortAction
 import com.example.algorithmvisualizer.domain.model.SnapshotManager
 import com.example.algorithmvisualizer.domain.model.SortIndices
 import com.example.algorithmvisualizer.domain.model.SortIterator
-import com.example.algorithmvisualizer.domain.model.SortOperation
+//import com.example.algorithmvisualizer.domain.model.SortOperation
 import com.example.algorithmvisualizer.domain.model.SortState
 import com.example.algorithmvisualizer.domain.model.getIndices
 import com.example.algorithmvisualizer.domain.model.setStatus
@@ -20,15 +23,16 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
     private var state: SortState = SortState(items.toMutableList())
 
     private val history =
-        OperationAndIndicesHistory<BubbleSortAction, SortIndices>(indices = BubbleSortIndicesHistory())
+        OperationAndIndicesHistory<BubbleSortOperation, SortIndices>(indices = BubbleSortIndicesHistory())
     private val snapshotManager = SnapshotManager<List<Item>>(10)
     private var selectedIndices: MutableSet<Int> = mutableSetOf()
 
     override val getOperationSize = history::getOperationSize
     override var completedSortingAt: Int? = null
 
-    override fun next(): SortOperation<BubbleSortAction>? {
-        if (state.isSorted) return null
+    override fun next(): BubbleSortOperation? {
+//        if (state.isSorted)  return history.getOperation(history.operation.getSize()-1)!!
+        if (isSorted()){ return history.getOperation(history.operation.getSize()-1)!! }
 
         // Verifica se existe historico a seguir
         val nextOperationIndex = history.getHistoryIndex() + 1
@@ -63,7 +67,7 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
 
         while (state.currentIndex < state.items.size) {
             // Identificador de ponto de retorno
-            var checkpoint = 0
+            var checkpoint:Int
 
             if (state.subIndex < state.items.size - state.currentIndex - 1) {
                 // Ponto de retorno 1: Comparação
@@ -78,10 +82,10 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
                     removeSelectedItemsStatus(selectedIndices)
 
                     // Comparação
-                    val compareOperation = SortOperation(
-                        BubbleSortAction.Comparing,
-                        listOf(index1, index2),
-                        listOf(item1, item2)
+                    val compareOperation = BubbleSortOperation(
+                        action = BubbleSortAction.Comparing,
+                        indices = listOf(index1, index2),
+                        items = listOf(item1, item2)
                     )
                     history.addOperation(compareOperation)
 
@@ -117,10 +121,11 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
                         val item2 = state.items[index2]
 
                         // Troca
-                        val swapOperation = SortOperation(
-                            BubbleSortAction.Swapping,
-                            listOf(index1, index2),
-                            listOf(item1, item2)
+                        val swapOperation =
+                            BubbleSortOperation(
+                                action = BubbleSortAction.Swapping,
+                                indices = listOf(index1, index2),
+                                items = listOf(item1, item2)
                         )
                         history.addOperation(swapOperation)
 
@@ -154,14 +159,20 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
             state = state.copy(returnPoint = 0)
         }
 
+
+        val completeOp = BubbleSortOperation(BubbleSortAction.Complete, listOf(), listOf())
+        history.addOperation(completeOp)
+
+        state = state.copy(isSorted = true)
+
         if (completedSortingAt == null) {
             completedSortingAt = history.getHistoryIndex()
         }
-        state = state.copy(isSorted = true)
-        return null
+
+        return completeOp
     }
 
-    override fun prev(): SortOperation<BubbleSortAction>? {
+    override fun prev(): BubbleSortOperation? {
         if (history.getHistoryIndex() < 0) return null
 
         val curOperation = history.getCurrentOperation()
@@ -190,7 +201,7 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
         }
     }
 
-    override fun setStep(step: Int): SortOperation<BubbleSortAction>? {
+    override fun setStep(step: Int): BubbleSortOperation? {
         val targetIndex = if (step - 1 < 0) {
             -1
         } else if (step >= history.getOperationSize()) {
@@ -240,21 +251,24 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
         return history.getCurrentOperation()
     }
 
-    override fun isSorted(): Boolean = completedSortingAt == history.getHistoryIndex()
+    override fun isSorted(): Boolean =  completedSortingAt?.let{ it <= history.getHistoryIndex()} ?: false
 
 
     override fun getCurrentState(): List<Item> = state.items.toList()
+    override fun getCurrentStep(): Int =history.getHistoryIndex()
 
     private fun applyOperation(
         list: MutableList<Item>,
-        operation: SortOperation<BubbleSortAction>,
+        operation: BubbleSortOperation,
     ) {
         when (operation.action) {
+
             BubbleSortAction.Comparing -> {
                 // No action needed for Comparing when applying operations
             }
 
             BubbleSortAction.Swapping -> {
+
                 val (index1, index2) = operation.indices
                 list.swap(index1, index2)
             }

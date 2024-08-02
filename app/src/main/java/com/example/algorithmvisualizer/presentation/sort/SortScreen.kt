@@ -1,13 +1,13 @@
 package com.example.algorithmvisualizer.presentation.sort
 
-import android.util.Log
+import android.content.res.Configuration
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,19 +18,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.DrawerState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.NonRestartableComposable
@@ -43,17 +46,33 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.rememberNavController
 import com.example.algorithmvisualizer.R
+import com.example.algorithmvisualizer.data.util.ISortOperation
+import com.example.algorithmvisualizer.data.util.QuickSortOperation
+import com.example.algorithmvisualizer.data.util.SortOperationHelper
+import com.example.algorithmvisualizer.domain.model.QuickSortAction
 import com.example.algorithmvisualizer.domain.model.SortAlgorithmName
-import com.example.algorithmvisualizer.domain.model.name
+import com.example.algorithmvisualizer.presentation.ui.AlgoVisAppState
+import com.example.algorithmvisualizer.presentation.ui.AppBottomNavigationBar
+import com.example.algorithmvisualizer.presentation.ui.theme.AlgorithmVisualizerTheme
+import com.example.algorithmvisualizer.presentation.utils.generateStaticItems
 
 @NonRestartableComposable
 @Composable
@@ -61,114 +80,25 @@ fun SortRoute(
     viewModel: SortViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-
-//    val currentStep by viewModel.currentStep.collectAsState()
-//    val currentOperation by viewModel.currentOperation.collectAsState()
-//    val currentState by viewModel.currentState.collectAsState()
-
-//    val getOperationSize: () -> Int =  viewModel::getOperationSize
-
-
     val onSlideChange: (Float) -> Unit = remember(viewModel) { viewModel::onSlideChange }
     val onPrevStep: () -> Unit = remember(viewModel) { viewModel::onClickPrevStep }
     val onPlay: () -> Unit = remember(viewModel) { viewModel::onPlay }
     val onNextStep: () -> Unit = remember(viewModel) { viewModel::onClickNextStep }
     val onResetClick: () -> Unit = remember(viewModel) { viewModel::onResetClick }
     val isPlaying by viewModel.isPlaying.collectAsState()
-//    val isSortInfoVisible by viewModel.isSortInfoVisible.collectAsState()
+    val onSetStep: (Int) -> Unit = remember(viewModel) { viewModel::onStepValueChange }
 
 
     val algorithm by viewModel.algorithmName.collectAsState()
     val onAlgorithmChange: (SortAlgorithmName) -> Unit =
         viewModel::onAlgorithmChanged
 
-//    LaunchedEffect(System.currentTimeMillis()) {
-//        Log.d("SORTROUTE_COMP_TEST", "------")
-//    }
-
-
-//    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-//    val scope = rememberCoroutineScope()
-//    val openDrawer: () -> Unit = remember {
-//        {
-//            scope.launch {
-//                drawerState.open()
-//            }
-//        }
-//    }
-//
-//    val closeDrawer: () -> Unit = remember {
-//        {
-//            scope.launch {
-//                drawerState.close()
-//            }
-//        }
-//    }
-
-//    LaunchedEffect(uiState) {
-////        Log.d("")
-//        Log.d("SORTROUTE_COMP_TEST", "---")
-//        Log.d("SORTROUTE_COMP_TEST", "uiState: $uiState")
-//    }
-
-//    LaunchedEffect(currentStep) {
-//        Log.d("SORTROUTE_COMP_TEST","currentStep:$currentStep")
-//    }
-
-//    LaunchedEffect(viewModel) {
-//        Log.d("SORTROUTE_COMP_TEST", "viewModel:$viewModel")
-//    }
-
-//    LaunchedEffect(currentOperation) {
-//        Log.d("SORTROUTE_COMP_TEST", "currentOperation:$currentOperation")
-//    }
-//    LaunchedEffect(currentState) {
-//        Log.d("SORTROUTE_COMP_TEST","currentState: $currentState")
-//    }
-
-//    LaunchedEffect(isPlaying) {
-//        Log.d("SORTROUTE_COMP_TEST", "isPlaying: $isPlaying")
-//    }
-
-
-//    LaunchedEffect(isSortInfoVisible) {
-//        Log.d("SORTROUTE_COMP_TEST","isSortInfoVisible: $isSortInfoVisible")
-//    }
-
-//    LaunchedEffect(getOperation) {
-//        Log.d("SORTSCREEN_COMP_TEST","getOperation")
-//    }
-
-//    LaunchedEffect(getOperationSize) {
-//        Log.d("SORTROUTE_COMP_TEST","getOperationSize: $getOperationSize")
-//    }
-
-//    LaunchedEffect(uiState) {
-//        Log.d("SORTSCREEN_COMP_TEST","itemCount")
-//    }
-//
-//    LaunchedEffect(uiState) {
-//        Log.d("SORTSCREEN_COMP_TEST","itemCount")
-//    }
-//
-//    LaunchedEffect(uiState) {
-//        Log.d("SORTSCREEN_COMP_TEST","itemCount")
-//    }
-
-
-//    AlgorithmNameDrawer(
-//        state = drawerState,
-//        onAlgorithmChange = onAlgorithmChange,
-//        closeDrawer = closeDrawer
-//    ) {
-
-//    val duration = measureTimeMillis {
 
     SortScreen(
         onNextStep = onNextStep,
         onPlay = onPlay,
         onPrevStep = onPrevStep,
+        onSetStep = onSetStep,
         getOperationSize = viewModel::getOperationSize,
         isPlaying = isPlaying,
         onSlideChange = onSlideChange,
@@ -178,7 +108,6 @@ fun SortRoute(
         uiState = uiState,
         modifier = Modifier
     )
-//    }
 }
 
 
@@ -187,6 +116,7 @@ fun SortScreen(
     uiState: SortScreenUiState,
     getOperationSize: () -> Int,
     onSlideChange: (Float) -> Unit,
+    onSetStep: (Int) -> Unit,
     onPrevStep: () -> Unit,
     onPlay: () -> Unit,
     onNextStep: () -> Unit,
@@ -195,79 +125,19 @@ fun SortScreen(
 
     algorithm: SortAlgorithmName,
     onAlgorithmChange: (SortAlgorithmName) -> Unit,
-
-//    onDrawerOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-//    val rUiState = remember { uiState }
-//    LaunchedEffect(uiState) {
-//        Log.d("SORTSCREEN_COMP_TEST", "rUiState: ${uiState}")
-//    }
-//
-//        LaunchedEffect(currentStep) {
-//        Log.d("SORTSCREEN_COMP_TEST","currentStep: $currentStep")
-//    }
-//    LaunchedEffect(currentOperation) {
-//        Log.d("SORTSCREEN_COMP_TEST", "currentOperation: $currentOperation")
-//    }
-//    LaunchedEffect(currentState) {
-//        Log.d("SORTSCREEN_COMP_TEST","currentState: $currentState")
-//    }
-    LaunchedEffect(uiState) {
-        if (uiState is SortScreenUiState.Completed) {
-            Log.d(
-                "SORTSCREEN_COMP_TEST",
-                "uiState: Completed; " +
-                        "currentStep: ${uiState.currentStep}; " +
-                        "isSortInfoVisible: ${uiState.isSortInfoVisible}; " +
-                        "showValues: ${uiState.showValues}; " +
-                        "showIndices: ${uiState.showIndices}"
-            )
-        } else {
-            Log.d("SORTSCREEN_COMP_TEST", "uiState: $uiState")
-        }
-    }
-//    LaunchedEffect(getOperationSize) {
-//        Log.d("SORTSCREEN_COMP_TEST", "getOperationSize: $getOperationSize")
-//    }
-//    LaunchedEffect(isPlaying) {
-//        Log.d("SORTSCREEN_COMP_TEST", "isPlaying: $isPlaying")
-//    }
-//    LaunchedEffect(isSortInfoVisible) {
-//        Log.d("SORTSCREEN_COMP_TEST","isSortInfoVisible: $isSortInfoVisible")
-//    }
-//    LaunchedEffect(onSlideChange) {
-//        Log.d("SORTSCREEN_COMP_TEST", "onSlideChange: $onSlideChange")
-//    }
 
-
-//    LaunchedEffect(onResetClick) {
-//        Log.d("SORTSCREEN_COMP_TEST", "onResetClick: $onResetClick")
-//    }
-//    LaunchedEffect(onNextStep) {
-//        Log.d("SORTSCREEN_COMP_TEST", "onNextStep: $onNextStep")
-//    }
-//    LaunchedEffect(onPrevStep) {
-//        Log.d("SORTSCREEN_COMP_TEST", "onPrevStep: $onPrevStep")
-//    }
-//    LaunchedEffect(algorithm) {
-//        Log.d("SORTSCREEN_COMP_TEST", "algorithm: $algorithm")
-//    }
-//    LaunchedEffect(onAlgorithmChange) {
-//        Log.d("SORTSCREEN_COMP_TEST", "onAlgorithmChange: $onAlgorithmChange")
-//    }
-
-//    val rCurrentStep = remember(currentStep) { currentStep }
     var expanded by remember { mutableStateOf(false) }
     val onDismissRequest = remember { { expanded = false } }
 
-//    val uiIsLoading = uiState is SortScreenlUiState.Completed
+    var showStepDialog by remember { mutableStateOf(false) }
+    val onStepDialogDismiss = remember { { showStepDialog = false } }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
-            .border(1.dp, Color.Magenta),
+            .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -294,8 +164,6 @@ fun SortScreen(
             ) {
                 IconButton(
                     onClick = { expanded = true }
-//                        onDrawerOpen
-
                 ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
@@ -307,40 +175,6 @@ fun SortScreen(
             }
         }
 
-
-//            Row {
-//                Text(
-//                    text = algorithm.name ?: "",
-//                    fontSize = 40.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    modifier = Modifier.clickable {
-//                        onDrawerOpen()
-////                    expanded = true
-//                    }
-//                )
-//            }
-//        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-//            DropdownMenu(
-//                expanded = expanded,
-//                onDismissRequest = { expanded = false }
-//            ) {
-//                SortAlgorithmName.entries.forEach { item ->
-//                    Log.d("ALGO_NAMME_TEST", item.name)
-//                    DropdownMenuItem(
-//                        text = { Text(item.name, fontSize = 32.sp) },
-//                        onClick = {
-//                            onAlgorithmChange(item);
-//                            expanded = false
-//                        })
-//                }
-//            }
-//        }
-//        Column(        modifier = modifier
-//            .fillMaxSize()            ,
-//            verticalArrangement = Arrangement.SpaceBetween,
-//            horizontalAlignment = Alignment.CenterHorizontally) {
-
-
         if (expanded) {
             AlgorithmNameDialog(
                 onAlgorithmChange,
@@ -348,48 +182,46 @@ fun SortScreen(
                 onCompletion = onDismissRequest
             )
         }
+        Spacer(Modifier.height(20.dp))
+
         Column(Modifier.weight(1f)) {
             if (uiState is SortScreenUiState.Completed) {
                 if (uiState.isSortInfoVisible) {
-                    Row {
-                        Text(
-                            text = uiState.currentOperation?.action?.name ?: "",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    Row {
-                        Text(
-                            text = "(${uiState.currentOperation?.indices?.joinToString(separator = ", ")})",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "${
-                                uiState.currentOperation?.indices?.map { i ->
-                                    uiState.items.elementAtOrNull(i)?.copy()?.value ?: ""
-                                }
-                                    ?.joinToString(separator = ", ")
-                            }", fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                    SortOperationInfo(
+                        operation = uiState.currentOperation,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.05f))
+//                            .padding(vertical = 12.dp, horizontal = 24.dp)
+//                            .height(60.dp)
+                            .fillMaxWidth()
+                    )
                 }
 
                 Row(Modifier.weight(1f)) {
                     BarChart(
-                        items = uiState.items,
+                        itemList = uiState.items,
                         showIndices = uiState.showIndices,
-                        showValues = uiState.showValues
+                        showValues = uiState.showValues,
                     )
                 }
 
                 SortSteps(
-                    uiState.currentStep,
-                    onSlideChange,
-                    getOperationSize,
-                    Modifier.padding(horizontal = 20.dp)
+                    step = uiState.currentStep,
+                    onSliderValueChange = onSlideChange,
+                    onStepClick = { showStepDialog = true },
+                    getOperationSize = getOperationSize,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+
                 )
+
+                if (showStepDialog) {
+                    StepDialog(
+                        min = 0,
+                        maxProvider = getOperationSize,
+                        stepProvider = { uiState.currentStep },
+                        onSetStep = onSetStep,
+                        onDismissRequest = onStepDialogDismiss)
+                }
             }
         }
 
@@ -416,9 +248,7 @@ fun SortControls(
 ) {
     val rOnPlay = remember { { onPlay() } }
 
-    val iconButtonColors = IconButtonDefaults.filledIconButtonColors(
-
-    )
+    val iconButtonColors = IconButtonDefaults.filledIconButtonColors()
     val pauseColors: IconButtonColors = IconButtonDefaults.filledIconButtonColors(
         containerColor = MaterialTheme.colorScheme.error,
         contentColor = MaterialTheme.colorScheme.onError
@@ -495,9 +325,42 @@ fun SortControls(
 }
 
 @Composable
+fun SortOperationInfo(
+    operation: ISortOperation?,
+    modifier: Modifier = Modifier,
+) {
+    val opHelper = remember { SortOperationHelper() }
+    val text = remember(operation) { operation?.let { opHelper.createMessage(operation) } ?: "" }
+
+    var expanded by remember { mutableStateOf(true) }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier
+            .animateContentSize(
+                animationSpec = tween(300)
+            )
+            .clickable { expanded = !expanded }
+            .padding(vertical = 12.dp, horizontal = 24.dp),
+    ) {
+        if (expanded) {
+            Text(
+                text = text,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Light,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.height(60.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun SortSteps(
     step: Int,
     onSliderValueChange: (Float) -> Unit,
+    onStepClick: () -> Unit,
     getOperationSize: () -> Int,
     modifier: Modifier = Modifier,
 ) {
@@ -524,13 +387,88 @@ fun SortSteps(
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onStepClick() }
         ) {
             Text("Step: ", fontSize = 18.sp)
             Spacer(Modifier.width(8.dp))
             Text(text = stepText, fontWeight = FontWeight.Medium, fontSize = 24.sp)
         }
     }
+
+}
+
+@Composable
+fun StepDialog(
+    min: Int,
+    maxProvider: () -> Int,
+    stepProvider: () -> Int,
+    onSetStep: (Int) -> Unit,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val focusRequester = remember { FocusRequester() }
+
+    var textState by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = ""
+            )
+        )
+    }
+//    var text by remember { mutableStateOf("")}
+    var isError: Boolean by remember { mutableStateOf(false) }
+    val max = remember { maxProvider() }
+
+    val onConfirmSend: () -> Unit = remember {
+        {
+            if (!isError) {
+                onSetStep(textState.text.toInt())
+                onDismissRequest()
+            }
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        val text2 = stepProvider().toString() ?: "999999"
+        textState = textState.copy(text = text2, selection = TextRange(text2.length))
+        isError = textState.text.toIntOrNull()?.let { it < min || it > max } ?: true
+        focusRequester.requestFocus()
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            Text(text = "OK", modifier = Modifier.clickable {
+                onConfirmSend()
+            })
+        },
+        text = {
+            TextField(
+                value = textState,
+                isError = isError,
+                onValueChange = { v ->
+                    val txtAsDigitsOnly = v.text.filter { c -> c.isDigit() }
+                    textState = textState.copy(
+                        text = txtAsDigitsOnly,
+                        selection = TextRange(txtAsDigitsOnly.length)
+                    )
+
+                    val txtAsInt = txtAsDigitsOnly.toIntOrNull()
+                    isError = txtAsInt?.let { it < min || txtAsInt > max } ?: true
+
+
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Default
+                ),
+                keyboardActions = KeyboardActions { onConfirmSend() },
+                modifier = modifier.focusRequester(focusRequester)
+            )
+        })
 
 }
 
@@ -576,21 +514,21 @@ fun AlgorithmNameDialog(
     }
 }
 
-@Composable
-fun AlgorithmNameDrawer(
-    state: DrawerState, modifier: Modifier = Modifier,
-    onAlgorithmChange: (SortAlgorithmName) -> Unit,
-    closeDrawer: () -> Unit,
-    content: @Composable () -> Unit,
-) {
-
-    ModalNavigationDrawer(
-        drawerState = state,
-        drawerContent = { DrawerContent(onAlgorithmChange, closeDrawer) },
-        content = content,
-        modifier = modifier
-    )
-}
+//@Composable
+//fun AlgorithmNameDrawer(
+//    state: DrawerState, modifier: Modifier = Modifier,
+//    onAlgorithmChange: (SortAlgorithmName) -> Unit,
+//    closeDrawer: () -> Unit,
+//    content: @Composable () -> Unit,
+//) {
+//
+//    ModalNavigationDrawer(
+//        drawerState = state,
+//        drawerContent = { DrawerContent(onAlgorithmChange, closeDrawer) },
+//        content = content,
+//        modifier = modifier
+//    )
+//}
 
 @Composable
 fun DrawerContent(
@@ -609,6 +547,78 @@ fun DrawerContent(
         }
     }
 }
+
+//@Composable
+//fun SettingsDialog(
+//    onDismissRequest: () -> Unit,
+//    modifier: Modifier = Modifier) {
+//    Dialog(onDismissRequest = onDismissRequest) {
+//        SettingsRoute(
+//            onBackClick = {},
+//            modifier = modifier
+//                .background(MaterialTheme.colorScheme.surfaceVariant)
+////                .fillMaxSize(0.8f)
+//                    )
+//
+//    }
+//}
+
+@Preview(
+    apiLevel = 34,
+    device = Devices.PIXEL_7,
+//    heightDp = 840,
+//    widthDp = 411,
+    showBackground = true,
+    showSystemUi = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun SortScreenPreview() {
+    AlgorithmVisualizerTheme {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = { AppBottomNavigationBar(appState = AlgoVisAppState(rememberNavController())) }
+        ) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .fillMaxSize()
+
+            ) {
+                val itemList = ItemList(generateStaticItems(15), "")
+                val uiState = SortScreenUiState.Completed(
+                    items = itemList,
+                    isSortInfoVisible = true,
+                    showIndices = true,
+                    currentStep = 3,
+                    currentOperation = QuickSortOperation(
+                        QuickSortAction.Swapping,
+                        listOf(1, 2),
+                        listOf(itemList.items[1], itemList.items[2])
+                    ),
+                    showValues = true
+                )
+
+                SortScreen(
+                    uiState = uiState,
+                    getOperationSize = { 1 },
+                    onSlideChange = {},
+                    onSetStep = {},
+                    onPrevStep = { },
+                    onPlay = { },
+                    onNextStep = { },
+                    onResetClick = { },
+                    isPlaying = true,
+                    algorithm = SortAlgorithmName.QuickSort,
+                    onAlgorithmChange = {}
+                )
+            }
+        }
+    }
+}
+
+
 
 
 
