@@ -3,7 +3,6 @@ package com.example.algorithmvisualizer.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.navigation.compose.NavHost
-import com.example.algorithmvisualizer.presentation.listedit.navigation.LIST_EDIT_SCREEN_ROUTE
 import com.example.algorithmvisualizer.presentation.listedit.navigation.listEditScreen
 import com.example.algorithmvisualizer.presentation.settings.navigation.settingsScreen
 import com.example.algorithmvisualizer.presentation.sort.navigation.SORT_SCREEN_ROUTE
@@ -28,7 +27,7 @@ fun AlgoVisNavHost(
         listEditScreen(
             onBackClick = { state.appState.navController.navigateUp() },
         )
-        settingsScreen(onBackClick = { state.appState.navController.navigateUp() },)
+        settingsScreen(onBackClick = { state.appState.navController.navigateUp() })
     }
 }
 

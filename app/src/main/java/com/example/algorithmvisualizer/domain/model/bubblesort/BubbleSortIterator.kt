@@ -25,111 +25,71 @@ class BubbleSortSortIterator(
     override val getOperationSize = history::getOperationSize
     override var completedSortingAt: Int? = null
 
-    override suspend fun next(): BubbleSortOperation? {
+    override suspend fun next(): BubbleSortOperation {
         return coroutineScope {
-        if (isSorted()) {
-            return@coroutineScope history.getOperation(history.operation.getSize() - 1)!!
-        }
-
-        // Verifica se existe historico a seguir
-        val nextOperationIndex = history.getHistoryIndex() + 1
-        val nextOperation = history.getOperation(nextOperationIndex)
-
-        nextOperation?.let { nextOp ->
-            val nextIndices = history.getIndices(nextOperationIndex)
-
-            // Atribui indices anteriores ao state
-            nextIndices?.let {
-                state = state.copy(
-                    subIndex = it.subIndex,
-                    currentIndex = it.currentIndex,
-                    returnPoint = it.returnPoint
-                )
+            if (isSorted()) {
+                return@coroutineScope history.getOperation(history.operation.getSize() - 1)!!
             }
 
-            // Muda indice do historico de operations para o próximo
-            history.incrementHistoryIndex()
+            // Verifica se existe historico a seguir
+            val nextOperationIndex = history.getHistoryIndex() + 1
+            val nextOperation = history.getOperation(nextOperationIndex)
 
-            // Aplica mudanças
-            applyOperation(state.items, nextOp)
+            nextOperation?.let { nextOp ->
+                val nextIndices = history.getIndices(nextOperationIndex)
 
-            // Desseleciona itens anteriores
-            removeSelectedItemsStatus(selectedIndices)
-
-            // Seleciona itens atuais
-            applySelectedItemsStatus(nextOp.indices)
-
-            return@coroutineScope nextOp
-        }
-
-        while (state.currentIndex < state.items.size) {
-            // Identificador de ponto de retorno
-            var checkpoint: Int
-
-            if (state.subIndex < state.items.size - state.currentIndex - 1) {
-                // Ponto de retorno 1: Comparação
-                checkpoint = 1
-                if (state.returnPoint < checkpoint) {
-                    val index1 = state.subIndex
-                    val index2 = state.subIndex + 1
-                    val item1 = state.items[index1]
-                    val item2 = state.items[index2]
-
-                    // Desseleciona itens anteriores
-                    removeSelectedItemsStatus(selectedIndices)
-
-                    // Comparação
-                    val compareOperation = BubbleSortOperation(
-                        action = BubbleSortAction.Comparing,
-                        indices = listOf(index1, index2),
-                        items = listOf(item1, item2)
+                // Atribui indices anteriores ao state
+                nextIndices?.let {
+                    state = state.copy(
+                        subIndex = it.subIndex,
+                        currentIndex = it.currentIndex,
+                        returnPoint = it.returnPoint
                     )
-                    history.addOperation(compareOperation)
-
-                    // Marcar itens como selecionados
-                    applySelectedItemsStatus(listOf(index1, index2))
-
-                    // Salva estado após a comparação
-                    snapshotManager.saveSnapshotIfNeeded(
-                        history.getHistoryIndex(),
-                        state.items.toList()
-                    )
-
-                    // Salva ponto de retorno
-                    state = state.copy(returnPoint = checkpoint)
-
-                    // Salva os indices no historico e retorna operação de comparação
-                    history.addIndices(
-                        operationIndex = history.getHistoryIndex(),
-                        indices = state.getIndices()
-                    )
-
-                    return@coroutineScope compareOperation
                 }
 
+                // Muda indice do historico de operations para o próximo
+                history.incrementHistoryIndex()
 
-                // Ponto de retorno 2: Troca (se necessário)
-                if (state.items[state.subIndex].value > state.items[state.subIndex + 1].value) {
-                    checkpoint = 2
+                // Aplica mudanças
+                applyOperation(state.items, nextOp)
+
+                // Desseleciona itens anteriores
+                removeSelectedItemsStatus(selectedIndices)
+
+                // Seleciona itens atuais
+                applySelectedItemsStatus(nextOp.indices)
+
+                return@coroutineScope nextOp
+            }
+
+            while (state.currentIndex < state.items.size) {
+                // Identificador de ponto de retorno
+                var checkpoint: Int
+
+                if (state.subIndex < state.items.size - state.currentIndex - 1) {
+                    // Ponto de retorno 1: Comparação
+                    checkpoint = 1
                     if (state.returnPoint < checkpoint) {
                         val index1 = state.subIndex
                         val index2 = state.subIndex + 1
                         val item1 = state.items[index1]
                         val item2 = state.items[index2]
 
-                        // Troca
-                        val swapOperation =
-                            BubbleSortOperation(
-                                action = BubbleSortAction.Swapping,
-                                indices = listOf(index1, index2),
-                                items = listOf(item1, item2)
-                            )
-                        history.addOperation(swapOperation)
+                        // Desseleciona itens anteriores
+                        removeSelectedItemsStatus(selectedIndices)
 
-                        // Aplicar troca
-                        applyOperation(state.items, swapOperation)
+                        // Comparação
+                        val compareOperation = BubbleSortOperation(
+                            action = BubbleSortAction.Comparing,
+                            indices = listOf(index1, index2),
+                            items = listOf(item1, item2)
+                        )
+                        history.addOperation(compareOperation)
 
-                        // Salva estado após a troca
+                        // Marcar itens como selecionados
+                        applySelectedItemsStatus(listOf(index1, index2))
+
+                        // Salva estado após a comparação
                         snapshotManager.saveSnapshotIfNeeded(
                             history.getHistoryIndex(),
                             state.items.toList()
@@ -138,66 +98,107 @@ class BubbleSortSortIterator(
                         // Salva ponto de retorno
                         state = state.copy(returnPoint = checkpoint)
 
-                        // Salva indices no historico e retorna operação de troca
+                        // Salva os indices no historico e retorna operação de comparação
                         history.addIndices(
                             operationIndex = history.getHistoryIndex(),
                             indices = state.getIndices()
                         )
-                        return@coroutineScope swapOperation
-                    }
-                }
-                state = state.copy(subIndex = state.subIndex + 1)
 
-            } else {
-                state = state.copy(subIndex = 0, currentIndex = state.currentIndex + 1)
+                        return@coroutineScope compareOperation
+                    }
+
+
+                    // Ponto de retorno 2: Troca (se necessário)
+                    if (state.items[state.subIndex].value > state.items[state.subIndex + 1].value) {
+                        checkpoint = 2
+                        if (state.returnPoint < checkpoint) {
+                            val index1 = state.subIndex
+                            val index2 = state.subIndex + 1
+                            val item1 = state.items[index1]
+                            val item2 = state.items[index2]
+
+                            // Troca
+                            val swapOperation =
+                                BubbleSortOperation(
+                                    action = BubbleSortAction.Swapping,
+                                    indices = listOf(index1, index2),
+                                    items = listOf(item1, item2)
+                                )
+                            history.addOperation(swapOperation)
+
+                            // Aplicar troca
+                            applyOperation(state.items, swapOperation)
+
+                            // Salva estado após a troca
+                            snapshotManager.saveSnapshotIfNeeded(
+                                history.getHistoryIndex(),
+                                state.items.toList()
+                            )
+
+                            // Salva ponto de retorno
+                            state = state.copy(returnPoint = checkpoint)
+
+                            // Salva indices no historico e retorna operação de troca
+                            history.addIndices(
+                                operationIndex = history.getHistoryIndex(),
+                                indices = state.getIndices()
+                            )
+                            return@coroutineScope swapOperation
+                        }
+                    }
+                    state = state.copy(subIndex = state.subIndex + 1)
+
+                } else {
+                    state = state.copy(subIndex = 0, currentIndex = state.currentIndex + 1)
+                }
+
+                // Reseta ponto de retorno para o próximo loop
+                state = state.copy(returnPoint = 0)
             }
 
-            // Reseta ponto de retorno para o próximo loop
-            state = state.copy(returnPoint = 0)
+
+            val completeOp = BubbleSortOperation(BubbleSortAction.Complete, listOf(), listOf())
+            history.addOperation(completeOp)
+
+            state = state.copy(isSorted = true)
+
+            if (completedSortingAt == null) {
+                completedSortingAt = history.getHistoryIndex()
+            }
+
+            return@coroutineScope completeOp
         }
-
-
-        val completeOp = BubbleSortOperation(BubbleSortAction.Complete, listOf(), listOf())
-        history.addOperation(completeOp)
-
-        state = state.copy(isSorted = true)
-
-        if (completedSortingAt == null) {
-            completedSortingAt = history.getHistoryIndex()
-        }
-
-        return@coroutineScope completeOp}
     }
 
     override suspend fun prev(): BubbleSortOperation? {
         return coroutineScope {
-        if (history.getHistoryIndex() < 0) return@coroutineScope null
+            if (history.getHistoryIndex() < 0) return@coroutineScope null
 
-        val curOperation = history.getCurrentOperation()
+            val curOperation = history.getCurrentOperation()
 
-        history.decrementHistoryIndex()
-        val prevOperation = history.getCurrentOperation()
+            history.decrementHistoryIndex()
+            val prevOperation = history.getCurrentOperation()
 
-        state = state.copy(isSorted = false)
+            state = state.copy(isSorted = false)
 
-        val prevIndices = history.getIndices(history.getHistoryIndex())
-        prevIndices?.let {
-            state = state.copy(
-                subIndex = it.subIndex,
-                currentIndex = it.currentIndex,
-                returnPoint = it.returnPoint
-            )
+            val prevIndices = history.getIndices(history.getHistoryIndex())
+            prevIndices?.let {
+                state = state.copy(
+                    subIndex = it.subIndex,
+                    currentIndex = it.currentIndex,
+                    returnPoint = it.returnPoint
+                )
+            }
+
+            curOperation?.let {
+                applyOperation(state.items, it)
+            }
+
+            return@coroutineScope prevOperation?.also { prevOp ->
+                removeSelectedItemsStatus(selectedIndices)
+                applySelectedItemsStatus(prevOp.indices)
+            }
         }
-
-        curOperation?.let {
-            applyOperation(state.items, it)
-        }
-
-        return@coroutineScope prevOperation?.also { prevOp ->
-            removeSelectedItemsStatus(selectedIndices)
-            applySelectedItemsStatus(prevOp.indices)
-        }
-    }
     }
 
     override suspend fun setStep(step: Int): BubbleSortOperation? {

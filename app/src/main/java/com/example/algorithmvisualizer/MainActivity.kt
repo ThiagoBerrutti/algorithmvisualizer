@@ -20,15 +20,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
-import com.example.algorithmvisualizer.data.repository.PreferencesRepositoryImpl
 import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
 import com.example.algorithmvisualizer.presentation.ui.AlgoVisApp
 import com.example.algorithmvisualizer.presentation.ui.rememberAppState
 import com.example.algorithmvisualizer.presentation.ui.theme.AlgorithmVisualizerTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 

@@ -1,8 +1,6 @@
 package com.example.algorithmvisualizer.navigation
 
 import androidx.annotation.DrawableRes
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
 import com.example.algorithmvisualizer.R
 
 enum class TopDestination(val route: String, val label: String, @DrawableRes val icon: Int) {

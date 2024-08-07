@@ -3,7 +3,6 @@ package com.example.algorithmvisualizer.data.di
 import android.content.Context
 import com.example.algorithmvisualizer.data.repository.PreferencesRepositoryImpl
 import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

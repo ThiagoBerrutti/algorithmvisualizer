@@ -395,7 +395,7 @@ class QuickSortIterator(
             val should = predicate?.invoke(it, list[it]) ?: true
             if (should) {
                 val ls = if (ignoreStack) (-1 to -1) else lastStack
-                val status2 = calculateItemStatus(ItemStatus.Normal, it, list, ls)
+                val status2 = calculateItemStatus(ItemStatus.Normal, it, ls)
 
                 if (status2 == ItemStatus.Normal) {
                     state.indicesStatus.remove(it)
@@ -437,7 +437,7 @@ class QuickSortIterator(
 
             if (should) {
                 val newStatus = if (status != null) {
-                    calculateItemStatus(status, index, list, lastStack)
+                    calculateItemStatus(status, index, lastStack)
                 } else {
                     list[index].status
                 }
@@ -492,7 +492,6 @@ class QuickSortIterator(
     private fun calculateItemStatus(
         newStatus: ItemStatus,
         index: Int,
-        list: List<Item> = state.items,
         lastStack: Pair<Int, Int>? = null,
     ): ItemStatus {
         val ls = lastStack ?: state.stack.lastOrNull()

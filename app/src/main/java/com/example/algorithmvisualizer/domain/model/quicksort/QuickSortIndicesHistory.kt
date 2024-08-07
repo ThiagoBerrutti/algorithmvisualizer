@@ -21,9 +21,9 @@ data class QuickSortIndices(
     val r: Int,
     val returnPoint: Int,
 
-    /* TODO: os campos abaixo não devem estar nessa classe, mas ainda não decidi onde colocar
+    /*  Os campos abaixo não devem estar nessa classe, mas ainda não decidi onde colocar
         os valores 'pivot' e 'partitioning'. sem falar que outros algoritmos podem ter outras
-        variaveis especificas para seu funcionamento */
+        variaveis especificas para seu funcionamento. Refatorar depois que pensar uma solucao melhor */
     val pivot: Int,
     val pivotIndex: Int,
     val partitioning: Boolean,
