@@ -20,7 +20,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
-import com.example.algorithmvisualizer.data.repository.PreferencesRepository
+import com.example.algorithmvisualizer.data.repository.PreferencesRepositoryImpl
+import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
 import com.example.algorithmvisualizer.presentation.ui.AlgoVisApp
 import com.example.algorithmvisualizer.presentation.ui.rememberAppState
 import com.example.algorithmvisualizer.presentation.ui.theme.AlgorithmVisualizerTheme
@@ -38,7 +39,7 @@ class MainActivity(
     @Inject
     lateinit var userDataRepository: PreferencesRepository
 
-    val viewModel: MainActivityViewModel by viewModels()
+    private val viewModel: MainActivityViewModel by viewModels()
 
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {

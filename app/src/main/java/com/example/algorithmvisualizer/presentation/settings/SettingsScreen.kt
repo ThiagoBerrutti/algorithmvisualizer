@@ -1,8 +1,5 @@
 package com.example.algorithmvisualizer.presentation.settings
 
-//import androidx.compose.runtime.getValue
-//import androidx.compose.runtime.setValue
-
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,7 +40,6 @@ import com.example.algorithmvisualizer.presentation.settings.SettingsUiEvent.Sho
 import com.example.algorithmvisualizer.presentation.settings.SettingsUiEvent.ShowInfoClick
 import com.example.algorithmvisualizer.presentation.settings.SettingsUiEvent.ShowValuesClick
 
-@OptIn(ExperimentalLayoutApi::class)
 
 @NonRestartableComposable
 @Composable

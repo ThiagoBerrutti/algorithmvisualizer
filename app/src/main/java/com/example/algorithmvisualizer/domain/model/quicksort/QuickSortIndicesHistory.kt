@@ -1,19 +1,6 @@
-package com.example.algorithmvisualizer.domain.model
+package com.example.algorithmvisualizer.domain.model.quicksort
 
-data class QuickSortState(
-    val items: MutableList<Item> = mutableListOf(),
-    val low: Int = 0,
-    val high: Int = items.lastIndex,
-    val l: Int = -1,
-    val r: Int = high,
-    val stack: MutableList<Pair<Int, Int>> = mutableListOf(),
-    val returnPoint: Int = 0,
-    val pivotValue: Int = 0,
-    val pivotIndex:Int = 0,
-    val partitioning: Boolean = false,
-    val indicesStatus: MutableMap<Int,ItemStatus> = mutableMapOf(),
-    val isSorted: Boolean = false,
-)
+import com.example.algorithmvisualizer.domain.model.IndicesHistory
 
 class QuickSortIndicesHistory : IndicesHistory<QuickSortIndices> {
     private val indicesList = mutableMapOf<Int, QuickSortIndices>()
@@ -34,23 +21,23 @@ data class QuickSortIndices(
     val r: Int,
     val returnPoint: Int,
 
-    /* TODO: as variaveis abaixo não devem estar nessa classe, mas ainda não decidi onde colocar
+    /* TODO: os campos abaixo não devem estar nessa classe, mas ainda não decidi onde colocar
         os valores 'pivot' e 'partitioning'. sem falar que outros algoritmos podem ter outras
         variaveis especificas para seu funcionamento */
     val pivot: Int,
-    val pivotIndex:Int,
+    val pivotIndex: Int,
     val partitioning: Boolean,
     val stack: MutableList<Pair<Int, Int>>,
 )
 
 fun QuickSortState.getIndices() = QuickSortIndices(
-    low= low,
-    high= high,
-    l=l,
-    r= r,
+    low = low,
+    high = high,
+    l = l,
+    r = r,
     returnPoint = returnPoint,
     pivot = pivotValue,
     pivotIndex = pivotIndex,
     partitioning = partitioning,
-    stack= stack
+    stack = stack.toMutableList()
 )

@@ -1,6 +1,5 @@
 package com.example.algorithmvisualizer.presentation.listedit
 
-import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,12 +8,10 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +25,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -40,15 +36,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -58,7 +50,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
@@ -108,7 +99,7 @@ fun ListEditScreen(
                 Icon(
                     imageVector = Icons.TwoTone.ArrowBack,
                     contentDescription = "Back",
-                    tint= MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -117,7 +108,7 @@ fun ListEditScreen(
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
-                modifier=Modifier.align(Alignment.CenterEnd)
+                modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Text(
                     "Save",
@@ -133,62 +124,64 @@ fun ListEditScreen(
                 .padding(horizontal = 20.dp)
                 .fillMaxSize()
         ) {
-        when (uiState) {
-            is ListEditUiState.Success -> {
-                val list = uiState.list
-                list.let { listNotNull ->
-                    ListEditControls(onEvent, listNotNull.size,
-                        modifier= Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.05f))
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Column(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.05f))
-                            .padding(20.dp)
-                    ){
-                        Row(
-                            modifier =Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ){
-                            Text("Items")
-                            Text("Total: ${list.size}")
-                        }
-                        val chunks = listNotNull.chunked(5)
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(56.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.padding(20.dp)
+            when (uiState) {
+                is ListEditUiState.Success -> {
+                    val list = uiState.list
+                    list.let { listNotNull ->
+                        ListEditControls(
+                            onEvent, listNotNull.size,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.05f))
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.05f))
+                                .padding(20.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text("Items")
+                                Text("Total: ${list.size}")
+                            }
+                            val chunks = listNotNull.chunked(5)
+                            LazyVerticalGrid(
+                                columns = GridCells.Adaptive(56.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.padding(20.dp)
 
-                    ) {
-                        chunks.map { chunk ->
-                            items(chunk, key = { it.key }) {
-                                ListItem(
-                                    value = it.value,
-                                    modifier = Modifier
-                                        .clickable { onEvent(ListEditUiEvent.OnItemClick({ it.key })) }
-                                        .animateItemPlacement()
-                                )
+                            ) {
+                                chunks.map { chunk ->
+                                    items(chunk, key = { it.key }) {
+                                        ListItem(
+                                            value = it.value,
+                                            modifier = Modifier
+                                                .clickable { onEvent(ListEditUiEvent.OnItemClick(keyProvider ={ it.key })) }
+                                                .animateItemPlacement()
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
+                }
+
+                else -> {
+                    Column(
+                        Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        ProgressIndicatorDemo()
                     }
                 }
             }
-
-            else -> {
-                Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    ProgressIndicatorDemo()
-                }
-            }
-        }}
+        }
 //        }
     }
 }
@@ -297,7 +290,7 @@ fun ListEditControls(
                                 ),
                                 keyboardActions = KeyboardActions(
                                     onGo = {
-                                        onEvent(ListEditUiEvent.OnAddItemClick({ text }))
+                                        onEvent(ListEditUiEvent.OnAddItemClick(valueProvider ={ text }))
                                         text = ""
                                     },
 //                                    onGo = { rOnAddItem() },
@@ -305,7 +298,7 @@ fun ListEditControls(
                                 trailingIcon = {
                                     IconButton(
                                         onClick = {
-                                            onEvent(ListEditUiEvent.OnAddItemClick({ text }))
+                                            onEvent(ListEditUiEvent.OnAddItemClick(valueProvider ={ text }))
                                             text = ""
                                         },
                                         colors = IconButtonDefaults.filledIconButtonColors(
@@ -334,8 +327,6 @@ fun ListEditControls(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                val sizeFieldEnabled = remember { randomSize.isNotEmpty() && randomSize.isDigitsOnly() }
-
                                 TextField(
                                     value = randomSize,
                                     onValueChange = { v ->
@@ -351,7 +342,7 @@ fun ListEditControls(
                                         keyboardType = KeyboardType.Number,
                                         imeAction = ImeAction.Go
                                     ),
-                                    keyboardActions = KeyboardActions  {
+                                    keyboardActions = KeyboardActions {
                                         rOnRandomItemsClick()
 //                                            onEvent(ListEditUiEvent.OnRandomListItemsClick(randomSize.toInt()))
                                         keyboardController?.hide()
@@ -361,23 +352,10 @@ fun ListEditControls(
                                     singleLine = true,
                                     trailingIcon = {
                                         Button(
-                                            onClick = {
-                                                rOnRandomItemsClick()
-
-    //                                            focusManager.clearFocus()
-                                            },
-                                            colors = ButtonDefaults.outlinedButtonColors(
-    //                                            containerColor = MaterialTheme.colorScheme.inverseSurface,
-    //                                            contentColor = MaterialTheme.colorScheme.inverseOnSurface
-                                            ),
-    //                                        colors = IconButtonDefaults.filledIconButtonColors(
-    //                                            containerColor = MaterialTheme.colorScheme.inverseSurface,
-    //                                            contentColor = MaterialTheme.colorScheme.inverseOnSurface
-    //                                        ),
-    //                                        enabled = randomSize.isNotEmpty() && randomSize.isDigitsOnly()
+                                            onClick = { rOnRandomItemsClick() },
+                                            colors = ButtonDefaults.outlinedButtonColors(),
                                         ) {
                                             Text("Randomize")
-    //                                        Icon(Icons.Default.Add, "")
                                         }
                                     }
                                 )

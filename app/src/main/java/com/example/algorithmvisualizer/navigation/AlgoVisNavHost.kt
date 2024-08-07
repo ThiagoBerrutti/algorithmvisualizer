@@ -13,7 +13,6 @@ import com.example.algorithmvisualizer.presentation.ui.AlgoVisAppState
 @Stable
 data class AlgoVisNavHostState(
     val appState: AlgoVisAppState,
-//    val startDestination: String = LIST_EDIT_SCREEN_ROUTE,
     val startDestination: String = SORT_SCREEN_ROUTE,
 )
 

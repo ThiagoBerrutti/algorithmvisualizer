@@ -22,10 +22,4 @@ enum class TopDestination(val route: String, val label: String, @DrawableRes val
         label = "Settings",
         icon = R.drawable.ic_settings
     )
-
 }
-
-//private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopDestination) =
-//    this?.hierarchy?.any {
-//        it.route?.contains(destination.name, true) ?: false
-//    } ?: false

@@ -1,16 +1,15 @@
 package com.example.algorithmvisualizer.presentation.settings
 
-import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.algorithmvisualizer.data.repository.PreferencesRepository
+import com.example.algorithmvisualizer.data.repository.PreferencesRepositoryImpl
+import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -55,7 +54,6 @@ class SettingsViewModel @Inject constructor(
                 showValues = data.showValues,
             )
         }
-//        .onEach { Log.d("UISTATE_USERDATA_TEST", "#2: $it") ; delay(100)}//
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState.Loading)
 
 
@@ -111,8 +109,7 @@ class SettingsViewModel @Inject constructor(
                 }
 
                 SettingsUiEvent.OnSaveClick -> {
-//                    withContext(ioScope.coroutineContext) {
-                        Log.d("ONSAVECLICK_TEST","delay: ${stt.value.delay}")
+                    withContext(ioScope.coroutineContext) {
                         val value = stt.value.delay.let { d ->
                             if (d.isNotBlank() && d.isDigitsOnly()) {
                                 d.toLong()
@@ -122,7 +119,7 @@ class SettingsViewModel @Inject constructor(
                             }
                         }
                         repo.saveDelay(value)
-//                    }
+                    }
                 }
             }
         }

@@ -18,24 +18,12 @@ import com.example.algorithmvisualizer.presentation.sort.navigation.navigateToSo
 class AlgoVisAppState(
     val navController: NavHostController,
 ) {
-//    val currentDestination: NavDestination?
-//        @Composable get() = navController
-//            .currentBackStackEntryAsState().value?.destination
-
     fun navigateToTopLevelDestination(topDestination: TopDestination) {
-//        val d = navController.graph.findStartDestination().route
-//        trace("Navigation: ${topDestination.name}") {
         val topLevelNavOptions = navOptions {
-            // Pop up to the start destination of the graph to
-            // avoid building up a large stack of destinations
-            // on the back stack as users select items
             popUpTo(navController.graph.findStartDestination().id) {
                 saveState = true
             }
-            // Avoid multiple copies of the same destination when
-            // reselecting the same item
             launchSingleTop = true
-            // Restore state when reselecting a previously selected item
             restoreState = true
         }
 

@@ -1,38 +1,35 @@
-package com.example.algorithmvisualizer.data.algorithms
+package com.example.algorithmvisualizer.domain.model.bubblesort
 
-import com.example.algorithmvisualizer.data.util.BubbleSortOperation
-import com.example.algorithmvisualizer.data.util.ISortOperation
-import com.example.algorithmvisualizer.data.util.QuickSortOperation
-import com.example.algorithmvisualizer.domain.model.BubbleSortAction
-import com.example.algorithmvisualizer.domain.model.BubbleSortIndicesHistory
+import com.example.algorithmvisualizer.data.util.OPERATIONS_SNAPSHOT_INTERVAL
 import com.example.algorithmvisualizer.domain.model.Item
 import com.example.algorithmvisualizer.domain.model.ItemStatus
 import com.example.algorithmvisualizer.domain.model.OperationAndIndicesHistory
-import com.example.algorithmvisualizer.domain.model.QuickSortAction
 import com.example.algorithmvisualizer.domain.model.SnapshotManager
-import com.example.algorithmvisualizer.domain.model.SortIndices
 import com.example.algorithmvisualizer.domain.model.SortIterator
-//import com.example.algorithmvisualizer.domain.model.SortOperation
-import com.example.algorithmvisualizer.domain.model.SortState
-import com.example.algorithmvisualizer.domain.model.getIndices
-import com.example.algorithmvisualizer.domain.model.setStatus
-import com.example.algorithmvisualizer.domain.model.swap
+import com.example.algorithmvisualizer.domain.util.setStatus
+import com.example.algorithmvisualizer.domain.util.swap
+import kotlinx.coroutines.coroutineScope
 
 
-class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSortAction> {
-    private var state: SortState = SortState(items.toMutableList())
-
-    private val history =
-        OperationAndIndicesHistory<BubbleSortOperation, SortIndices>(indices = BubbleSortIndicesHistory())
-    private val snapshotManager = SnapshotManager<List<Item>>(10)
+class BubbleSortSortIterator(
+    items: MutableList<Item>,
+    private var state: BubbleSortState = BubbleSortState(items.toMutableList()),
+    private val history: OperationAndIndicesHistory<BubbleSortOperation, BubbleSortIndices> =
+        OperationAndIndicesHistory(indices = BubbleSortIndicesHistory()),
+    private val snapshotManager: SnapshotManager<List<Item>> = SnapshotManager(
+        OPERATIONS_SNAPSHOT_INTERVAL
+    ),
+) : SortIterator<BubbleSortAction> {
     private var selectedIndices: MutableSet<Int> = mutableSetOf()
 
     override val getOperationSize = history::getOperationSize
     override var completedSortingAt: Int? = null
 
-    override fun next(): BubbleSortOperation? {
-//        if (state.isSorted)  return history.getOperation(history.operation.getSize()-1)!!
-        if (isSorted()){ return history.getOperation(history.operation.getSize()-1)!! }
+    override suspend fun next(): BubbleSortOperation? {
+        return coroutineScope {
+        if (isSorted()) {
+            return@coroutineScope history.getOperation(history.operation.getSize() - 1)!!
+        }
 
         // Verifica se existe historico a seguir
         val nextOperationIndex = history.getHistoryIndex() + 1
@@ -62,12 +59,12 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
             // Seleciona itens atuais
             applySelectedItemsStatus(nextOp.indices)
 
-            return nextOp
+            return@coroutineScope nextOp
         }
 
         while (state.currentIndex < state.items.size) {
             // Identificador de ponto de retorno
-            var checkpoint:Int
+            var checkpoint: Int
 
             if (state.subIndex < state.items.size - state.currentIndex - 1) {
                 // Ponto de retorno 1: Comparação
@@ -107,7 +104,7 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
                         indices = state.getIndices()
                     )
 
-                    return compareOperation
+                    return@coroutineScope compareOperation
                 }
 
 
@@ -126,7 +123,7 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
                                 action = BubbleSortAction.Swapping,
                                 indices = listOf(index1, index2),
                                 items = listOf(item1, item2)
-                        )
+                            )
                         history.addOperation(swapOperation)
 
                         // Aplicar troca
@@ -146,7 +143,7 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
                             operationIndex = history.getHistoryIndex(),
                             indices = state.getIndices()
                         )
-                        return swapOperation
+                        return@coroutineScope swapOperation
                     }
                 }
                 state = state.copy(subIndex = state.subIndex + 1)
@@ -169,11 +166,12 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
             completedSortingAt = history.getHistoryIndex()
         }
 
-        return completeOp
+        return@coroutineScope completeOp}
     }
 
-    override fun prev(): BubbleSortOperation? {
-        if (history.getHistoryIndex() < 0) return null
+    override suspend fun prev(): BubbleSortOperation? {
+        return coroutineScope {
+        if (history.getHistoryIndex() < 0) return@coroutineScope null
 
         val curOperation = history.getCurrentOperation()
 
@@ -195,13 +193,14 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
             applyOperation(state.items, it)
         }
 
-        return prevOperation?.also { prevOp ->
+        return@coroutineScope prevOperation?.also { prevOp ->
             removeSelectedItemsStatus(selectedIndices)
             applySelectedItemsStatus(prevOp.indices)
         }
     }
+    }
 
-    override fun setStep(step: Int): BubbleSortOperation? {
+    override suspend fun setStep(step: Int): BubbleSortOperation? {
         val targetIndex = if (step - 1 < 0) {
             -1
         } else if (step >= history.getOperationSize()) {
@@ -251,11 +250,12 @@ class BubbleSortSortIterator(items: MutableList<Item>) : SortIterator<BubbleSort
         return history.getCurrentOperation()
     }
 
-    override fun isSorted(): Boolean =  completedSortingAt?.let{ it <= history.getHistoryIndex()} ?: false
+    override fun isSorted(): Boolean =
+        completedSortingAt?.let { it <= history.getHistoryIndex() } ?: false
 
 
     override fun getCurrentState(): List<Item> = state.items.toList()
-    override fun getCurrentStep(): Int =history.getHistoryIndex()
+    override fun getCurrentStep(): Int = history.getHistoryIndex()
 
     private fun applyOperation(
         list: MutableList<Item>,

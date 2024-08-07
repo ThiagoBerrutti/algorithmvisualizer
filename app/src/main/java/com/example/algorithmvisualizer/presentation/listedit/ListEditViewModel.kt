@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.algorithmvisualizer.data.repository.PreferencesRepository
+import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
 import com.example.algorithmvisualizer.presentation.utils.KeyedValue
 import com.example.algorithmvisualizer.presentation.utils.generateRandomValues
 import com.example.algorithmvisualizer.presentation.utils.toKeyedValue
@@ -32,8 +32,7 @@ class ListEditViewModel @Inject constructor(
 
     private val state = MutableStateFlow(ListEditState())
 
-    val listEditUiState = numbers.combine(state) { n, s -> s }
-
+    val listEditUiState = numbers.combine(state) { _, s -> s }
         .map { st ->
             ListEditUiState.Success(
                 list = st.items,
@@ -44,7 +43,7 @@ class ListEditViewModel @Inject constructor(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
             ListEditUiState.Loading
-        )  // userData.map { it.numbersList }
+        )
 
 
     init {
@@ -58,42 +57,42 @@ class ListEditViewModel @Inject constructor(
     }
 
     private fun onAddItem(value: Int) {
-            state.update { st ->
-                st.copy(
-                    items = ((st.items) + value.toKeyedValue())
-                        .toMutableList()
-                )
-            }
+        state.update { st ->
+            st.copy(
+                items = ((st.items) + value.toKeyedValue())
+                    .toMutableList()
+            )
+        }
     }
 
     private fun onDeleteItem(key: String) {
-            state.update { st ->
-                val indexToRemove = st.items.indexOfFirst { it.key == key }
-                if (indexToRemove < 0) return
+        state.update { st ->
+            val indexToRemove = st.items.indexOfFirst { it.key == key }
+            if (indexToRemove < 0) return
 
-                val newItems = st.items.toMutableList().apply {
-                    removeAt(indexToRemove)
-                }
-
-                st.copy(items = newItems)
+            val newItems = st.items.toMutableList().apply {
+                removeAt(indexToRemove)
             }
+
+            st.copy(items = newItems)
+        }
 
     }
 
     private fun onRandomListItems(size: Int) {
-            state.update { st ->
-                val newValues = generateRandomValues(size.coerceAtLeast(1))
-                    .map { it.toKeyedValue() }
-                st.copy(items = newValues)
-            }
+        state.update { st ->
+            val newValues = generateRandomValues(size.coerceAtLeast(1))
+                .map { it.toKeyedValue() }
+            st.copy(items = newValues)
+        }
 
     }
 
     private suspend fun onSaveClick() {
-            withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
-                val values = state.value.items.map { it.value }
-                preferencesRepository.saveNumbersList(values)
-            }
+        withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
+            val values = state.value.items.map { it.value }
+            preferencesRepository.saveNumbersList(values)
+        }
 
     }
 
@@ -137,9 +136,7 @@ sealed class ListEditUiEvent {
     data object OnSaveClick : ListEditUiEvent()
     data class OnRandomListItemsClick(val size: Int) : ListEditUiEvent()
     data class OnAddItemClick(val valueProvider: () -> String) : ListEditUiEvent()
-//    data class OnAddItemClick(val value: String) : ListEditUiEvent()
-    data class OnItemClick(val keyProvider: () ->String) : ListEditUiEvent()
-//    data class OnItemClick(val key: String) : ListEditUiEvent()
+    data class OnItemClick(val keyProvider: () -> String) : ListEditUiEvent()
 }
 
 
@@ -148,5 +145,4 @@ data class ListEditState(
     val items: List<KeyedValue<String, Int>> = emptyList(),
     val randomSize: String = "",
     val radioValue: Int = 1,
-
-    )
+)

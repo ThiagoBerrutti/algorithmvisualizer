@@ -1,7 +1,5 @@
 package com.example.algorithmvisualizer.domain.model
 
-import com.example.algorithmvisualizer.data.util.ISortOperation
-
 class OperationAndIndicesHistory<TOperation: ISortOperation, TIndices>(
     val operation: OperationHistory<TOperation> = OperationHistory(),
     val indices: IndicesHistory<TIndices>,

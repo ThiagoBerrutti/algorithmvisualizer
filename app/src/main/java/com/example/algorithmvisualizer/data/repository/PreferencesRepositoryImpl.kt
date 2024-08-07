@@ -1,20 +1,18 @@
 package com.example.algorithmvisualizer.data.repository
 
-//import kotlinx.coroutines.flow.combine
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.algorithmvisualizer.data.PreferencesKeys
 import com.example.algorithmvisualizer.data.UserData
+import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
 import com.example.algorithmvisualizer.presentation.utils.generateRandomValues
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -29,11 +27,7 @@ import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-class PreferencesRepository(val context: Context) {
-//    private val data = context.dataStore.data
-//        .catch { emit(emptyPreferences()) }
-
-
+internal class PreferencesRepositoryImpl(val context: Context):PreferencesRepository {
     private val delay: Flow<Long?> =
         context.dataStore.data.map { it[PreferencesKeys.DELAY_MS] }
 
@@ -48,7 +42,7 @@ class PreferencesRepository(val context: Context) {
             flowOf(it ?: 50)
         }
 
-    val isSortInfoVisible: Flow<Boolean?> = context.dataStore.data
+    private val isSortInfoVisible: Flow<Boolean?> = context.dataStore.data
         .map { it[PreferencesKeys.SHOW_INFO] }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,14 +50,14 @@ class PreferencesRepository(val context: Context) {
         flowOf(it ?: true)
     }
 
-    suspend fun saveSortInfoVisibility(show: Boolean) {
+    override suspend fun saveSortInfoVisibility(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_INFO] = show
         }
     }
 
 
-    suspend fun saveNumbersList(numbersList: List<Int>) {
+    override suspend fun saveNumbersList(numbersList: List<Int>) {
         val jsonString = Json.encodeToString(numbersList)
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.NUMBERS_LIST] = jsonString
@@ -85,7 +79,7 @@ class PreferencesRepository(val context: Context) {
         }
     }
 
-    val userData = combine(
+    override val userData = combine(
         numberListIfNull,
         delayIfNull,
         isSortInfoVisibleIfNull,
@@ -105,7 +99,7 @@ class PreferencesRepository(val context: Context) {
         }
     }
 
-    suspend fun saveDelay(delay: Long) {
+    override suspend fun saveDelay(delay: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DELAY_MS] = delay
         }
@@ -117,13 +111,13 @@ class PreferencesRepository(val context: Context) {
         emit(randomValues)
     }
 
-    suspend fun saveShowIndices(show: Boolean) {
+    override suspend fun saveShowIndices(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_INDICES] = show
         }
     }
 
-    suspend fun saveShowValues(show: Boolean) {
+    override suspend fun saveShowValues(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_VALUES] = show
         }

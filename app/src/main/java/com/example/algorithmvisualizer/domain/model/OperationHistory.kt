@@ -1,9 +1,6 @@
 package com.example.algorithmvisualizer.domain.model
 
-import com.example.algorithmvisualizer.data.util.BubbleSortOperation
-import com.example.algorithmvisualizer.data.util.ISortOperation
-
-class OperationHistory<TOperation: ISortOperation> {
+class OperationHistory<TOperation : ISortOperation> {
     private val operations = mutableMapOf<Int, TOperation>()
     private var historyIndex = -1
 
@@ -33,8 +30,8 @@ class OperationHistory<TOperation: ISortOperation> {
         return historyIndex
     }
 
-    fun setHistoryIndex(newIndex:Int):Int {
-        if (newIndex in -1..operations.size){
+    fun setHistoryIndex(newIndex: Int): Int {
+        if (newIndex in -1..operations.size) {
             historyIndex = newIndex
         }
 

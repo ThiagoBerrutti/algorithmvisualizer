@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.algorithmvisualizer.MainActivityUiState.Loading
 import com.example.algorithmvisualizer.MainActivityUiState.Success
 import com.example.algorithmvisualizer.data.UserData
-import com.example.algorithmvisualizer.data.repository.PreferencesRepository
+import com.example.algorithmvisualizer.data.repository.PreferencesRepositoryImpl
+import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

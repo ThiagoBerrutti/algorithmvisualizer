@@ -1,6 +1,8 @@
-package com.example.algorithmvisualizer.domain.model
+package com.example.algorithmvisualizer.domain.model.bubblesort
 
-data class SortState(
+import com.example.algorithmvisualizer.domain.model.Item
+
+data class BubbleSortState(
     val items: MutableList<Item>,
     val currentIndex: Int = 0,
     val subIndex: Int = 0,

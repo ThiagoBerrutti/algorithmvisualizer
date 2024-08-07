@@ -1,7 +1,9 @@
 package com.example.algorithmvisualizer.data.di
 
 import android.content.Context
-import com.example.algorithmvisualizer.data.repository.PreferencesRepository
+import com.example.algorithmvisualizer.data.repository.PreferencesRepositoryImpl
+import com.example.algorithmvisualizer.domain.repository.PreferencesRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,12 +18,6 @@ class AppModule {
     @Singleton
     @Provides
     fun providePreferencesRepository(@ApplicationContext context: Context): PreferencesRepository =
-        PreferencesRepository(context)
-
-
-//    @Binds
-//    internal fun bindPreferencesRepository(
-//        preferencesRepo: PreferencesRepositoryImpl,
-//    ): PreferencesRepository
+        PreferencesRepositoryImpl(context)
 
 }

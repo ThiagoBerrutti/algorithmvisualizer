@@ -1,6 +1,5 @@
 package com.example.algorithmvisualizer.presentation.ui
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,46 +10,39 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.algorithmvisualizer.navigation.AlgoVisNavHost
 import com.example.algorithmvisualizer.navigation.AlgoVisNavHostState
 import com.example.algorithmvisualizer.navigation.TopDestination
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AlgoVisApp(appState: AlgoVisAppState) {
-    val snackbarHostState = remember {SnackbarHostState()}
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0,0,0,0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         modifier = Modifier
             .fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState)},
-//        topBar = { TopAppBar(title = { Text("Small top bar") }) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-      AppBottomNavigationBar(appState = appState)
+            AppBottomNavigationBar(appState = appState)
 
         }) { padding ->
         Box(
@@ -73,7 +65,7 @@ fun AlgoVisApp(appState: AlgoVisAppState) {
 
 @Composable
 fun AppBottomNavigationBar(appState: AlgoVisAppState, modifier: Modifier = Modifier) {
-    NavigationBar {
+    NavigationBar(modifier = modifier) {
         val c by appState.navController.currentBackStackEntryAsState()
 
         TopDestination.entries.map { destination ->
@@ -100,7 +92,6 @@ private fun AppBottomNavigationBarPreview() {
     val appState = AlgoVisAppState(rememberNavController())
     AppBottomNavigationBar(appState)
 }
-
 
 
 private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopDestination) =
