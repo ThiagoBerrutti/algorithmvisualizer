@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -245,9 +244,6 @@ class SortViewModel @Inject constructor(
                 return@coroutineScope
             }
 
-            select<Unit> {
-                nextJob?.onJoin
-            }
             nextJob?.join()
             prevJob = launch {
                 sortIterator.value?.let { iterator ->
